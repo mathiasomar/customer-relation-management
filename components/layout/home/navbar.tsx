@@ -7,9 +7,9 @@ import { Button } from "@/components/ui/button";
 // import ProfileMenu from "./profile-menu";
 import { ModeToggle } from "@/components/mode-toggle";
 import MobileLinksMenu from "./mobile-links-menu";
-import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import ProfileMenu from "./profile-menu";
+import { auth } from "@/lib/auth";
 
 const Navbar = async () => {
   const session = await auth.api.getSession({

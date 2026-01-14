@@ -3,7 +3,6 @@
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { authClient } from "@/lib/auth-client";
 import { useState } from "react";
 import {
   Field,
@@ -16,8 +15,9 @@ import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { Separator } from "./ui/separator";
 import Link from "next/link";
-import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
+import { authClient } from "@/lib/auth-client";
+import { toast } from "sonner";
 
 const formSchema = z
   .object({
