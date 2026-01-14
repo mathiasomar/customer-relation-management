@@ -61,7 +61,7 @@ const SigninForm = () => {
           setLoading(true);
         },
         onSuccess: () => {
-          toast.success("Account logged in successfully!");
+          toast.success("Account verified successfully! Redirecting...");
           setLoading(false);
         },
         onError: (ctx) => {

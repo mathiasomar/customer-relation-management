@@ -4,7 +4,9 @@ import { prisma } from "./prisma";
 import { nextCookies } from "better-auth/next-js";
 import { createAuthMiddleware, APIError } from "better-auth/api";
 import { normalizeName, VALID_DOMAINS } from "./utils";
-import { lastLoginMethod } from "better-auth/plugins";
+import { lastLoginMethod, admin } from "better-auth/plugins";
+import { UserRole } from "@/generated/prisma/enums";
+import { ac, roles } from "@/lib/permision";
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
@@ -27,6 +29,20 @@ export const auth = betterAuth({
   session: {
     expiresIn: 60 * 60 * 24 * 1, // 1 days
     updateAge: 60 * 60 * 24, // 24 hours
+  },
+  user: {
+    additionalFields: {
+      role: {
+        type: [
+          "AGENT",
+          "ADMIN",
+          "MANAGER",
+          "VIEWER",
+          "MEMBER",
+        ] as Array<UserRole>,
+        input: false,
+      },
+    },
   },
   appName: "O-CRM",
   hooks: {
@@ -55,8 +71,36 @@ export const auth = betterAuth({
       }
     }),
   },
+  databaseHooks: {
+    user: {
+      create: {
+        before: async (user) => {
+          const ADMIN_EMAILS = process.env.ADMIN_EMAILS?.split(";") ?? [];
 
-  plugins: [nextCookies(), lastLoginMethod()],
+          if (ADMIN_EMAILS.includes(user.email)) {
+            return {
+              data: {
+                ...user,
+                role: UserRole.ADMIN,
+              },
+            };
+          }
+
+          return { data: user };
+        },
+      },
+    },
+  },
+  plugins: [
+    nextCookies(),
+    lastLoginMethod(),
+    admin({
+      defaultRole: UserRole.AGENT,
+      adminRoles: [UserRole.ADMIN],
+      ac,
+      roles,
+    }),
+  ],
 });
 
 export type ErrorCode = keyof typeof auth.$ERROR_CODES | "UNKNOWN_ERROR";
