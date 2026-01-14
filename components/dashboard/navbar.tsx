@@ -34,7 +34,7 @@ const Navbar = () => {
       {/* RIGHT */}
       <div className="flex items-center gap-4">
         <Link href={"/"} className="text-xs lg:text-sm 2xl:text-base">
-          Dashboard
+          Back to Home
         </Link>
         {/* THEME TOGGLE */}
         <ModeToggle />
