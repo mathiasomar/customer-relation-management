@@ -10,19 +10,18 @@ import { User } from "@/generated/prisma/client";
 const ViewDataTable = () => {
   const searchParams = useSearchParams();
   const filterParams = {
-    search: searchParams.get("search") || undefined,
-    role: searchParams.get("role") || undefined,
+    search: searchParams.get("search")?.trim() ?? "",
   };
 
-  const { data: users, isLoading } = useUsers(filterParams);
+  const { data: users, isFetching } = useUsers(filterParams);
   return (
-    <div className="mt-4">
-      {isLoading ? (
+    <>
+      {isFetching ? (
         <DataTableSkeleton />
       ) : (
         <DataTable columns={columns} data={users as User[]} />
       )}
-    </div>
+    </>
   );
 };
 

@@ -17,16 +17,14 @@ const layout = async ({ children }: { children: React.ReactNode }) => {
   if (!session) redirect("/");
 
   return (
-    <div className="w-full h-screen overflow-auto">
-      <SidebarProvider defaultOpen={defaultOpen}>
-        <AppSidebar />
-        <main className="w-full">
-          <Navbar />
-          <div className="p-4 w-full">{children}</div>
-          {/* <Toaster position="top-right" reverseOrder={false} /> */}
-        </main>
-      </SidebarProvider>
-    </div>
+    <SidebarProvider defaultOpen={defaultOpen}>
+      <AppSidebar />
+      <main className="w-full">
+        <Navbar />
+        <div className="p-4 w-full">{children}</div>
+        {/* <Toaster position="top-right" reverseOrder={false} /> */}
+      </main>
+    </SidebarProvider>
   );
 };
 

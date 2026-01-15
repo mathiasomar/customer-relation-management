@@ -1,8 +1,10 @@
+"use client";
+
 import { getUsers } from "@/actions/user.actions";
 import { UserFilters } from "@/types/user";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
-export const useUsers = (filters?: UserFilters) => {
+export const useUsers = (filters: UserFilters = {}) => {
   return useQuery({
     queryKey: ["users", filters],
     queryFn: async () => {
@@ -14,5 +16,6 @@ export const useUsers = (filters?: UserFilters) => {
 
       return result;
     },
+    placeholderData: keepPreviousData,
   });
 };

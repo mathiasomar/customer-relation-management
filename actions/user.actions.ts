@@ -1,12 +1,12 @@
 "use server";
 
-import { UserWhereInput } from "@/generated/prisma/models";
+import { Prisma } from "@/generated/prisma/client";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { UserFilters } from "@/types/user";
 import { headers } from "next/headers";
 
-export const getUsers = async (filters: UserFilters) => {
+export const getUsers = async (filters: UserFilters = {}) => {
   //   const session = await auth.api.getSession({ headers: headerList });
   //   if (!session) {
   //     return {
@@ -21,11 +21,11 @@ export const getUsers = async (filters: UserFilters) => {
   });
   if (!session?.user) throw new Error("Unauthorized");
 
-  const { search } = filters;
+  const { search = "", role } = filters;
 
-  const where: UserWhereInput = {};
+  const where: Prisma.UserWhereInput = {};
 
-  if (search) {
+  if (search && search.trim().length >= 2) {
     where.OR = [
       {
         name: {
@@ -41,6 +41,8 @@ export const getUsers = async (filters: UserFilters) => {
       },
     ];
   }
+
+  if (role) where.role = role;
 
   try {
     const users = await prisma.user.findMany({

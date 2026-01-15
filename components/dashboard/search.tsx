@@ -23,10 +23,11 @@ const Search = () => {
   };
 
   const handleClearSearch = () => {
-    const params = new URLSearchParams(searchParams);
+    setSearchValue("");
+    const params = new URLSearchParams(searchParams.toString());
     params.delete("search");
     router.push(`${pathname}?${params.toString()}`, { scroll: false });
-    setSearchValue("");
+    router.refresh();
   };
   return (
     <div className="flex items-center gap-4">
