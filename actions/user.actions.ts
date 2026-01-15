@@ -1,0 +1,62 @@
+"use server";
+
+import { UserWhereInput } from "@/generated/prisma/models";
+import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { UserFilters } from "@/types/user";
+import { headers } from "next/headers";
+
+export const getUsers = async (filters: UserFilters) => {
+  //   const session = await auth.api.getSession({ headers: headerList });
+  //   if (!session) {
+  //     return {
+  //       error: {
+  //         message: "Unauthorized",
+  //       },
+  //     };
+  //   }
+
+  const session = await auth.api.getSession({
+    headers: await headers(), // you need to pass the headers object.
+  });
+  if (!session?.user) throw new Error("Unauthorized");
+
+  const { search } = filters;
+
+  const where: UserWhereInput = {};
+
+  if (search) {
+    where.OR = [
+      {
+        name: {
+          contains: search,
+          mode: "insensitive",
+        },
+      },
+      {
+        email: {
+          contains: search,
+          mode: "insensitive",
+        },
+      },
+    ];
+  }
+
+  try {
+    const users = await prisma.user.findMany({
+      where,
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    return users;
+  } catch (error) {
+    console.log(error);
+    return {
+      error: {
+        message: "Failed to fetch users",
+      },
+    };
+  }
+};
