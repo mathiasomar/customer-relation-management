@@ -62,7 +62,7 @@ const Navbar = () => {
           <DropdownMenu>
             <DropdownMenuTrigger>
               <Avatar>
-                <AvatarImage src={session?.user?.image || ""} />
+                <AvatarImage src={session?.user?.image || undefined} />
                 <AvatarFallback>
                   {session?.user?.name.slice(0, 2).toUpperCase()}
                 </AvatarFallback>

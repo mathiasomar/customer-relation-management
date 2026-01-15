@@ -80,6 +80,19 @@ export const columns: ColumnDef<User>[] = [
   {
     accessorKey: "role",
     header: "Role",
+    cell: ({ row }) => {
+      const user = row.original;
+
+      return (
+        <div>
+          {user.role
+            .toLowerCase()
+            .split(" ")
+            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(" ")}
+        </div>
+      );
+    },
   },
   {
     id: "actions",

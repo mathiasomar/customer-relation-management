@@ -37,7 +37,7 @@ const ProfileMenu = () => {
     <DropdownMenu>
       <DropdownMenuTrigger>
         <Avatar>
-          <AvatarImage src={session?.user?.image || ""}></AvatarImage>
+          <AvatarImage src={session?.user?.image || undefined}></AvatarImage>
           <AvatarFallback>
             {session?.user?.name.slice(0, 2).toUpperCase()}
           </AvatarFallback>

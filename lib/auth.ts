@@ -12,19 +12,20 @@ export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
-  trustedOrigins:
-    process.env.NODE_ENV === "production"
-      ? [process.env.DORMAIN_URL!]
-      : ["http://localhost:3000"],
+  baseURL: process.env.BETTER_AUTH_URL,
+  socialProviders: {
+    google: {
+      clientId: String(process.env.GOOGLE_CLIENT_ID),
+      clientSecret: String(process.env.GOOGLE_SECRET_KEY),
+    },
+    github: {
+      clientId: process.env.GITHUB_CLIENT_ID as string,
+      clientSecret: process.env.GITHUB_SECRET_KEY as string,
+    },
+  },
   emailAndPassword: {
     enabled: true,
     autoSignIn: false,
-  },
-  socialProviders: {
-    google: {
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_SECRET_KEY!,
-    },
   },
   session: {
     expiresIn: 60 * 60 * 24 * 1, // 1 days
@@ -91,6 +92,10 @@ export const auth = betterAuth({
       },
     },
   },
+  trustedOrigins:
+    process.env.NODE_ENV === "production"
+      ? [process.env.DORMAIN_URL!]
+      : ["http://localhost:3000"],
   plugins: [
     nextCookies(),
     lastLoginMethod(),
