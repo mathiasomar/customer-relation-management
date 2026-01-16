@@ -16,6 +16,7 @@ import { ModeToggle } from "../mode-toggle";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { authClient } from "@/lib/auth-client";
 import { Spinner } from "../ui/spinner";
+import TenantSwitcher from "./tenant-switcher";
 
 const Navbar = () => {
   const handleLogout = async () => {
@@ -30,7 +31,10 @@ const Navbar = () => {
   return (
     <nav className="p-4 flex items-center justify-between sticky bg-background top-0 z-10">
       {/* LEFT */}
-      <SidebarTrigger />
+      <div className="flex gap-4 items-center">
+        <SidebarTrigger />
+        <TenantSwitcher />
+      </div>
       {/* RIGHT */}
       <div className="flex items-center gap-4">
         <Link href={"/"} className="text-xs lg:text-sm 2xl:text-base">
