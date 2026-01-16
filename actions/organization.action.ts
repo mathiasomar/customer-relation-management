@@ -155,11 +155,14 @@ export const createTenant = async (
 ) => {
   const session = await getCurrentUser();
 
+  // Validate input data
+  const validatedData = createTenantSchema.parse(data);
+
   try {
     // Generate slug if not provided
-    let slug = data.slug;
+    let slug = validatedData.slug;
     if (!slug) {
-      slug = slugify(data.name, { lower: true, strict: true });
+      slug = slugify(validatedData.name, { lower: true, strict: true });
     }
 
     // Check if slug exists
@@ -180,13 +183,13 @@ export const createTenant = async (
       // Create tenant
       const tenant = await tx.tenant.create({
         data: {
-          name: data.name,
+          name: validatedData.name,
           slug,
-          website: data.website || null,
-          industry: data.industry || null,
-          timezone: data.timezone,
-          currency: data.currency,
-          language: data.language,
+          website: validatedData.website || null,
+          industry: validatedData.industry || null,
+          timezone: validatedData.timezone,
+          currency: validatedData.currency,
+          language: validatedData.language,
           subscriptionStatus: SubscriptionStatus.TRIAL,
           trialEndsAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14-day trial
           currentPeriodEnds: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
