@@ -4,38 +4,37 @@ import { auth } from "../auth";
 import { UserRole } from "@/generated/prisma/enums";
 import { prisma } from "../prisma";
 
-// export async function getCurrentTenant() {
-//   const session = await auth();
-//   if (!session?.user?.tenantId) {
-//     throw new Error("Unauthorized: No tenant access");
-//   }
-//   return session.user.tenantId;
-// }
+export const getCurrentTenant = async () => {
+  const session = await auth.api.getSession();
+  if (!session?.user?.tenantId) {
+    throw new Error("Unauthorized: No tenant access");
+  }
+  return session.user.tenantId;
+};
 
-export async function getCurrentUser() {
+export const getCurrentUser = async () => {
   const session = await auth.api.getSession();
   if (!session?.user?.id) {
     throw new Error("Unauthorized");
   }
   return session.user;
-}
+};
 
 // Verify user has permission in tenant with optional role requirements
-export async function verifyTenantPermission(
-  requiredRole?: UserRole[] | string[],
-  tenantId?: string
-) {
+export const verifyTenantPermission = async (
+  requiredRole?: UserRole[] | string[]
+) => {
   const session = await auth.api.getSession();
 
   if (!session?.user?.id) {
     throw new Error("Unauthorized: Please sign in");
   }
 
-  if (!tenantId) {
+  if (!session.user?.tenantId) {
     throw new Error("Unauthorized: No tenant access");
   }
 
-  const { role: tenantRole } = session.user;
+  const { tenantId, role: tenantRole } = session.user;
 
   // Verify tenant exists and user is still a member
   const tenantMember = await prisma.tenantMember.findUnique({
@@ -58,23 +57,33 @@ export async function verifyTenantPermission(
   });
 
   if (!tenantMember) {
-    throw new Error("Unauthorized: You are not a member of this workspace");
+    return {
+      success: false,
+      error: "Unauthorized: You are not a member of this workspace",
+    };
   }
 
   // Check if tenant is active
   if (tenantMember.tenant.deletedAt) {
-    throw new Error("This workspace has been deleted");
+    return {
+      success: false,
+      error: "This workspace has been deleted",
+    };
   }
 
   if (!tenantMember.tenant.isActive) {
-    throw new Error("This workspace is currently inactive");
+    return {
+      success: false,
+      error: "This workspace is currently inactive",
+    };
   }
 
   // Check subscription status for certain features
   if (tenantMember.tenant.subscriptionStatus === "SUSPENDED") {
-    throw new Error(
-      "Workspace subscription is suspended. Please contact support."
-    );
+    return {
+      success: false,
+      error: "Workspace subscription is suspended. Please contact support.",
+    };
   }
 
   // Check if user is banned
@@ -85,11 +94,15 @@ export async function verifyTenantPermission(
 
   if (user?.banned) {
     if (user.banExpires && user.banExpires > new Date()) {
-      throw new Error(
-        `Your account is suspended until ${user.banExpires.toLocaleDateString()}`
-      );
+      return {
+        success: false,
+        error: `Your account is suspended until ${user.banExpires.toLocaleDateString()}`,
+      };
     } else if (!user.banExpires) {
-      throw new Error("Your account has been permanently suspended");
+      return {
+        success: false,
+        error: "Your account has been permanently suspended",
+      };
     }
   }
 
@@ -98,41 +111,33 @@ export async function verifyTenantPermission(
     const hasRequiredRole = requiredRole.includes(tenantRole as UserRole);
 
     if (!hasRequiredRole) {
-      // Get role hierarchy for more detailed error
-      const roleHierarchy: Record<UserRole, number> = {
-        ADMIN: 4,
-        MANAGER: 3,
-        AGENT: 2,
-        VIEWER: 1,
-        MEMBER: 0,
+      return {
+        success: false,
+        error:
+          "Unauthorized: You do not have permission to perform this action",
       };
-
-      const requiredRoleNames = requiredRole.join(" or ");
-      throw new Error(
-        `Insufficient permissions. Required role: ${requiredRoleNames}. Your role: ${tenantRole}`
-      );
     }
   }
 
   return {
+    userRole: tenantRole as UserRole,
     tenantId,
     userId: session.user.id,
-    userRole: tenantRole as UserRole,
     tenantMember,
   };
-}
+};
 
 // Check specific permission from JSON permissions field
 export async function verifySpecificPermission(permissionKey: string) {
   const { tenantMember } = await verifyTenantPermission();
 
   // If user is ADMIN, they have all permissions
-  if (tenantMember.role === "ADMIN") {
+  if (tenantMember?.role === "ADMIN") {
     return true;
   }
 
   // Check specific permission in permissions JSON
-  const permissions = tenantMember.permissions as Record<
+  const permissions = tenantMember?.permissions as Record<
     string,
     boolean
   > | null;
@@ -259,7 +264,7 @@ export async function canAccessResource(
   const { tenantId, userRole } = await verifyTenantPermission();
 
   // ADMIN and MANAGER can access all resources
-  if (["ADMIN", "MANAGER"].includes(userRole)) {
+  if (["ADMIN", "MANAGER"].includes(userRole ?? "")) {
     return true;
   }
 

@@ -43,6 +43,10 @@ export const auth = betterAuth({
         ] as Array<UserRole>,
         input: false,
       },
+      tenantId: {
+        type: "string",
+        input: false,
+      },
     },
   },
   appName: "O-CRM",
@@ -88,6 +92,30 @@ export const auth = betterAuth({
           }
 
           return { data: user };
+        },
+      },
+    },
+    session: {
+      create: {
+        before: async (session) => {
+          // Get the user's current tenant membership
+          const userMemberships = await prisma.tenantMember.findMany({
+            where: { userId: session.userId },
+            include: { tenant: true },
+            orderBy: { joinedAt: "desc" },
+          });
+
+          if (userMemberships.length > 0) {
+            // Set the tenantId to the user's first tenant (most recently joined)
+            return {
+              data: {
+                ...session,
+                tenantId: userMemberships[0].tenantId,
+              },
+            };
+          }
+
+          return { data: session };
         },
       },
     },
