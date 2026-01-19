@@ -37,44 +37,51 @@ const createTenantSchema = z.object({
 });
 
 // Get user's accessible tenants
-export const getUserTenants = async () => {
+export const getUserTenantsMembmership = async () => {
   const session = await getCurrentUser();
 
-  const tenantMemberships = await prisma.tenantMember.findMany({
-    where: {
-      userId: session.id,
-      tenant: {
-        isActive: true,
-        deletedAt: null,
-      },
-    },
-    include: {
-      tenant: {
-        select: {
-          id: true,
-          name: true,
-          slug: true,
-          logo: true,
-          subscriptionStatus: true,
-          plan: true,
+  try {
+    const tenantMemberships = await prisma.tenantMember.findMany({
+      where: {
+        userId: session.id,
+        tenant: {
+          isActive: true,
+          deletedAt: null,
         },
       },
-    },
-    orderBy: {
-      joinedAt: "desc",
-    },
-  });
+      include: {
+        tenant: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            logo: true,
+            subscriptionStatus: true,
+            plan: true,
+          },
+        },
+      },
+      orderBy: {
+        joinedAt: "desc",
+      },
+    });
 
-  return tenantMemberships.map((tm) => ({
-    id: tm.tenant.id,
-    name: tm.tenant.name,
-    slug: tm.tenant.slug,
-    logo: tm.tenant.logo,
-    role: tm.role,
-    joinedAt: tm.joinedAt,
-    subscriptionStatus: tm.tenant.subscriptionStatus,
-    plan: tm.tenant.plan,
-  }));
+    const tenants = tenantMemberships.map((tm) => ({
+      id: tm.tenant.id,
+      name: tm.tenant.name,
+      slug: tm.tenant.slug,
+      logo: tm.tenant.logo,
+      role: tm.role,
+      joinedAt: tm.joinedAt,
+      subscriptionStatus: tm.tenant.subscriptionStatus,
+      plan: tm.tenant.plan,
+    }));
+
+    return { success: true, tenants };
+  } catch (error) {
+    console.error("Error fetching tenant:", error);
+    return { success: false, error: "Failed to load workspace details" };
+  }
 };
 
 // Switch tenant context (for multi-tenant users)
@@ -576,7 +583,6 @@ export const inviteMember = async (data: {
 
 // UPDATE: Update member role/permissions
 export const updateMemberRole = async (
-  id: string,
   memberId: string,
   data: {
     role: UserRole;
