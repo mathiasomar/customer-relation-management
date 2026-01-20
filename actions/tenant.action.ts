@@ -11,21 +11,25 @@ import {
   UserRole,
 } from "@/generated/prisma/enums";
 import { Prisma } from "@/generated/prisma/client";
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
 import { InputJsonValue } from "@prisma/client/runtime/client";
 import { TenantPermissions } from "@/types/tenant";
+import {
+  getCurrentUser,
+  verifyTenantPermission,
+} from "@/lib/permisions/tenant";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 
 // Schema for tenant creation
 const createTenantSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   slug: z
     .string()
-    .min(2)
-    .max(50)
+    .min(2, { message: "Slug must be at least 2 characters" })
+    .max(50, { message: "Slug must be at most 50 characters" })
     .regex(
       /^[a-z0-9-]+$/,
-      "Slug can only contain lowercase letters, numbers, and hyphens"
+      "Slug can only contain lowercase letters, numbers, and hyphens",
     ),
   website: z.string().url().optional().or(z.literal("")),
   industry: z.string().optional(),
@@ -34,124 +38,183 @@ const createTenantSchema = z.object({
   language: z.string().default("en"),
 });
 
-const getCurrentUser = async () => {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session?.user?.id) {
-    throw new Error("Unauthorized");
-  }
-  return session.user;
-};
+// Get user's accessible tenants
+export const getUserTenantsMembmership = async () => {
+  const session = await getCurrentUser();
 
-const verifyTenantPermission = async (
-  tenantId: string,
-  requiredRole?: UserRole[] | string[]
-) => {
-  const session = await auth.api.getSession();
-
-  if (!session?.user?.id) {
-    throw new Error("Unauthorized: Please sign in");
-  }
-
-  if (!tenantId) {
-    throw new Error("Unauthorized: No tenant access");
-  }
-
-  const { role: tenantRole } = session.user;
-
-  // Verify tenant exists and user is still a member
-  const tenantMember = await prisma.tenantMember.findUnique({
-    where: {
-      userId_tenantId: {
-        userId: session.user.id,
-        tenantId: tenantId as string,
-      },
-    },
-    include: {
-      tenant: {
-        select: {
-          id: true,
+  try {
+    const tenantMemberships = await prisma.tenantMember.findMany({
+      where: {
+        userId: session.id,
+        tenant: {
           isActive: true,
-          deletedAt: true,
-          subscriptionStatus: true,
+          deletedAt: null,
         },
       },
-    },
-  });
+      include: {
+        tenant: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            logo: true,
+            subscriptionStatus: true,
+            plan: true,
+          },
+        },
+      },
+      orderBy: {
+        joinedAt: "desc",
+      },
+    });
 
-  if (!tenantMember) {
-    return {
-      success: false,
-      error: "Unauthorized: You are not a member of this workspace",
-    };
+    const tenants = tenantMemberships.map((tm) => ({
+      id: tm.tenant.id,
+      name: tm.tenant.name,
+      slug: tm.tenant.slug,
+      logo: tm.tenant.logo,
+      role: tm.role,
+      joinedAt: tm.joinedAt,
+      subscriptionStatus: tm.tenant.subscriptionStatus,
+      plan: tm.tenant.plan,
+    }));
+
+    return { success: true, tenants };
+  } catch (error) {
+    console.error("Error fetching tenant:", error);
+    return { success: false, error: "Failed to load workspace details" };
   }
-
-  // Check if tenant is active
-  if (tenantMember.tenant.deletedAt) {
-    return {
-      success: false,
-      error: "This workspace has been deleted",
-    };
-  }
-
-  if (!tenantMember.tenant.isActive) {
-    return {
-      success: false,
-      error: "This workspace is currently inactive",
-    };
-  }
-
-  // Check subscription status for certain features
-  if (tenantMember.tenant.subscriptionStatus === "SUSPENDED") {
-    return {
-      success: false,
-      error: "Workspace subscription is suspended. Please contact support.",
-    };
-  }
-
-  // Check if user is banned
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    select: { banned: true, banExpires: true },
-  });
-
-  if (user?.banned) {
-    if (user.banExpires && user.banExpires > new Date()) {
-      return {
-        success: false,
-        error: `Your account is suspended until ${user.banExpires.toLocaleDateString()}`,
-      };
-    } else if (!user.banExpires) {
-      return {
-        success: false,
-        error: "Your account has been permanently suspended",
-      };
-    }
-  }
-
-  // Check role permissions if required
-  if (requiredRole && requiredRole.length > 0) {
-    const hasRequiredRole = requiredRole.includes(tenantRole as UserRole);
-
-    if (!hasRequiredRole) {
-      return {
-        success: false,
-        error:
-          "Unauthorized: You do not have permission to perform this action",
-      };
-    }
-  }
-
-  return {
-    userRole: tenantRole as UserRole,
-    tenantId,
-    userId: session.user.id,
-    tenantMember,
-  };
 };
+
+// Get user all tenants
+export const getAllUserTenants = async () => {
+  const session = await getCurrentUser();
+
+  try {
+    const tenantMemberships = await prisma.tenantMember.findMany({
+      where: {
+        userId: session.id,
+      },
+      include: {
+        tenant: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            logo: true,
+            subscriptionStatus: true,
+            plan: true,
+            trialEndsAt: true,
+            currentPeriodEnds: true,
+          },
+        },
+      },
+      orderBy: {
+        joinedAt: "desc",
+      },
+    });
+
+    const tenants = tenantMemberships.map((tm) => ({
+      id: tm.tenant.id,
+      name: tm.tenant.name,
+      slug: tm.tenant.slug,
+      logo: tm.tenant.logo,
+      subscriptionStatus: tm.tenant.subscriptionStatus,
+      plan: tm.tenant.plan,
+      trialEndsAt: tm.tenant.trialEndsAt,
+      currentPeriodEnds: tm.tenant.currentPeriodEnds,
+    }));
+
+    return { success: true, tenants };
+  } catch (error) {
+    console.error("Error fetching tenant:", error);
+    return { success: false, error: "Failed to load workspace details" };
+  }
+};
+
+// Switch tenant context (for multi-tenant users)
+export async function switchTenant(newTenantId: string) {
+  const session = await getCurrentUser();
+
+  try {
+    // Verify user is a member of the requested tenant
+    const tenantMember = await prisma.tenantMember.findUnique({
+      where: {
+        userId_tenantId: {
+          userId: session.id,
+          tenantId: newTenantId,
+        },
+      },
+      include: {
+        tenant: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            isActive: true,
+            deletedAt: true,
+          },
+        },
+      },
+    });
+
+    if (!tenantMember) {
+      throw new Error("You are not a member of this workspace");
+    }
+
+    if (tenantMember.tenant.deletedAt) {
+      throw new Error("This workspace has been deleted");
+    }
+
+    if (!tenantMember.tenant.isActive) {
+      throw new Error("This workspace is currently inactive");
+    }
+
+    // Update the current session to set the new tenantId
+    try {
+      const headersList = await headers();
+      const currentSession = await auth.api.getSession({
+        headers: headersList,
+      });
+      if (currentSession?.session?.id) {
+        // Update the session in the database with the new tenantId
+        await prisma.session.update({
+          where: {
+            id: currentSession.session.id,
+          },
+          data: {
+            tenantId: newTenantId,
+          },
+        });
+      }
+    } catch (sessionError) {
+      console.error(
+        "Error updating session after tenant switch:",
+        sessionError,
+      );
+      // Don't fail the whole operation if session update fails
+    }
+
+    const tenant = {
+      tenantId: tenantMember.tenant.id,
+      tenantSlug: tenantMember.tenant.slug,
+      tenantName: tenantMember.tenant.name,
+      userRole: tenantMember.role,
+      permissions: tenantMember.permissions,
+    };
+
+    revalidatePath(`/dashboard/${tenant.tenantSlug}`);
+
+    return { success: true, tenant };
+  } catch (error) {
+    console.error("Error switching tenant:", error);
+    return { success: false, error: "Failed to switch workspace" };
+  }
+}
 
 // CREATE: Create a new organization/tenant
 export const createTenant = async (
-  data: z.infer<typeof createTenantSchema>
+  data: z.infer<typeof createTenantSchema>,
 ) => {
   const session = await getCurrentUser();
 
@@ -178,12 +241,18 @@ export const createTenant = async (
       };
     }
 
+    const normalizeName = validatedData.name
+      .trim()
+      .replace(/\s+/g, " ")
+      .replace(/[^a-zA-Z\s'-]/g, "")
+      .replace(/\b\w/g, (char) => char.toUpperCase());
+
     // Create tenant with transaction
     const result = await prisma.$transaction(async (tx) => {
       // Create tenant
       const tenant = await tx.tenant.create({
         data: {
-          name: validatedData.name,
+          name: normalizeName,
           slug,
           website: validatedData.website || null,
           industry: validatedData.industry || null,
@@ -292,8 +361,34 @@ export const createTenant = async (
       return tenant;
     });
 
+    // Update the current session to set the new tenant as default
+    try {
+      const headersList = await headers();
+      const currentSession = await auth.api.getSession({
+        headers: headersList,
+      });
+
+      if (currentSession?.session?.id) {
+        await prisma.session.update({
+          where: {
+            id: currentSession.session.id,
+          },
+          data: {
+            tenantId: result.id,
+          },
+        });
+      }
+    } catch (sessionError) {
+      console.error(
+        "Error updating session after tenant creation:",
+        sessionError,
+      );
+      // Don't fail the whole operation if session update fails
+    }
+
     revalidatePath("/dashboard");
-    revalidatePath("/settings/organization");
+    revalidatePath("/dashboard/organizations");
+    revalidatePath("/dashboard/settings");
 
     return {
       success: true,
@@ -328,11 +423,19 @@ export const createTenant = async (
 };
 
 // READ: Get current tenant details
-export const getTenant = async (id: string) => {
-  await verifyTenantPermission(id as string);
+export const getTenant = async () => {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session?.session.tenantId) {
+    return { success: false, error: "Unauthorized: No tenant access" };
+  }
+
+  const { tenantId } = await verifyTenantPermission();
   try {
     const tenant = await prisma.tenant.findUnique({
-      where: { id },
+      where: { id: tenantId },
       include: {
         _count: {
           select: {
@@ -363,7 +466,6 @@ export const getTenant = async (id: string) => {
 
 // UPDATE: Update tenant/organization settings
 export const updateTenant = async (
-  id: string,
   data: Partial<{
     name: string;
     website: string;
@@ -373,10 +475,10 @@ export const updateTenant = async (
     currency: string;
     language: string;
     billingEmail: string;
-  }>
+  }>,
 ) => {
   try {
-    const { userRole, tenantId } = await verifyTenantPermission(id, [
+    const { userRole, tenantId } = await verifyTenantPermission([
       "ADMIN",
       "MANAGER",
     ]);
@@ -428,15 +530,12 @@ export const updateTenant = async (
 };
 
 // UPDATE: Update subscription plan
-export const updateSubscription = async (
-  id: string,
-  data: {
-    plan: string;
-    billingInterval: BillingInterval;
-  }
-) => {
+export const updateSubscription = async (data: {
+  plan: string;
+  billingInterval: BillingInterval;
+}) => {
   try {
-    const { tenantId } = await verifyTenantPermission(id, ["ADMIN"]);
+    const { tenantId } = await verifyTenantPermission(["ADMIN"]);
 
     const updatedTenant = await prisma.tenant.update({
       where: { id: tenantId },
@@ -478,9 +577,9 @@ export const updateSubscription = async (
 };
 
 // READ: Get tenant members
-export const getTenantMembers = async (id: string) => {
+export const getTenantMembers = async () => {
   try {
-    const { tenantId } = await verifyTenantPermission(id);
+    const { tenantId } = await verifyTenantPermission();
 
     const members = await prisma.tenantMember.findMany({
       where: { tenantId },
@@ -507,16 +606,13 @@ export const getTenantMembers = async (id: string) => {
 };
 
 // CREATE: Invite new member to tenant
-export const inviteMember = async (
-  id: string,
-  data: {
-    email: string;
-    role: string;
-    permissions?: TenantPermissions;
-  }
-) => {
+export const inviteMember = async (data: {
+  email: string;
+  role: string;
+  permissions?: TenantPermissions;
+}) => {
   try {
-    const { tenantId, userId, userRole } = await verifyTenantPermission(id, [
+    const { tenantId, userId, userRole } = await verifyTenantPermission([
       "ADMIN",
       "MANAGER",
     ]);
@@ -608,15 +704,14 @@ export const inviteMember = async (
 
 // UPDATE: Update member role/permissions
 export const updateMemberRole = async (
-  id: string,
   memberId: string,
   data: {
     role: UserRole;
     permissions?: TenantPermissions;
-  }
+  },
 ) => {
   try {
-    const { tenantId, userId, userRole } = await verifyTenantPermission(id, [
+    const { tenantId, userId, userRole } = await verifyTenantPermission([
       "ADMIN",
     ]);
 
@@ -692,9 +787,9 @@ export const updateMemberRole = async (
 };
 
 // DELETE: Remove member from tenant
-export async function removeMember(id: string, memberId: string) {
+export async function removeMember(memberId: string) {
   try {
-    const { tenantId, userId, userRole } = await verifyTenantPermission(id, [
+    const { tenantId, userId, userRole } = await verifyTenantPermission([
       "ADMIN",
     ]);
 
@@ -771,9 +866,9 @@ export async function removeMember(id: string, memberId: string) {
 }
 
 // READ: Get tenant usage statistics
-export const getTenantUsage = async (id: string) => {
+export const getTenantUsage = async () => {
   try {
-    const { tenantId } = await verifyTenantPermission(id);
+    const { tenantId } = await verifyTenantPermission();
 
     const [
       contactCount,

@@ -30,6 +30,12 @@ export const auth = betterAuth({
   session: {
     expiresIn: 60 * 60 * 24 * 1, // 1 days
     updateAge: 60 * 60 * 24, // 24 hours
+    additionalFields: {
+      tenantId: {
+        type: "string",
+        input: false,
+      },
+    },
   },
   user: {
     additionalFields: {
@@ -88,6 +94,49 @@ export const auth = betterAuth({
           }
 
           return { data: user };
+        },
+      },
+    },
+    session: {
+      create: {
+        before: async (session) => {
+          // Get the user's current tenant membership
+          const userMemberships = await prisma.tenantMember.findMany({
+            where: { userId: session.userId },
+            include: { tenant: true },
+            orderBy: { joinedAt: "desc" },
+          });
+
+          if (userMemberships.length > 0) {
+            // Set the tenantId to the user's first tenant (most recently joined)
+            return {
+              data: {
+                ...session,
+                tenantId: userMemberships[0].tenantId,
+              },
+            };
+          }
+
+          return { data: session };
+        },
+      },
+      get: {
+        after: async (session) => {
+          // Always fetch the latest tenantId from the session record
+          if (session && session.session?.id) {
+            const sessionRecord = await prisma.session.findUnique({
+              where: { id: session.session.id },
+              select: { tenantId: true },
+            });
+
+            if (sessionRecord?.tenantId) {
+              // Set tenantId on both session and user for flexibility
+              session.session.tenantId = sessionRecord.tenantId;
+              session.user.tenantId = sessionRecord.tenantId;
+            }
+          }
+
+          return session;
         },
       },
     },

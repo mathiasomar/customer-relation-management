@@ -29,6 +29,7 @@ import {
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
+import { authClient } from "@/lib/auth-client";
 
 const items = [
   {
@@ -91,6 +92,19 @@ const items = [
 const AppSidebar = () => {
   const pathname = usePathname();
 
+  const { data: session } = authClient.useSession();
+
+  // Filter items based on user role
+  const filteredItems = items.filter((item) => {
+    // Hide Users menu for non-admin/manager users
+    if (item.title === "Users") {
+      return (
+        session?.user?.role === "ADMIN" || session?.user?.role === "MANAGER"
+      );
+    }
+    return true;
+  });
+
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="py-4">
@@ -111,7 +125,7 @@ const AppSidebar = () => {
           <SidebarGroupLabel>Application</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {items.map((item) => (
+              {filteredItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     tooltip={item.title}
