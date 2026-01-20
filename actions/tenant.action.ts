@@ -17,6 +17,7 @@ import {
   getCurrentUser,
   verifyTenantPermission,
 } from "@/lib/permisions/tenant";
+import { auth } from "@/lib/auth";
 
 // Schema for tenant creation
 const createTenantSchema = z.object({
@@ -27,7 +28,7 @@ const createTenantSchema = z.object({
     .max(50)
     .regex(
       /^[a-z0-9-]+$/,
-      "Slug can only contain lowercase letters, numbers, and hyphens"
+      "Slug can only contain lowercase letters, numbers, and hyphens",
     ),
   website: z.string().url().optional().or(z.literal("")),
   industry: z.string().optional(),
@@ -85,55 +86,77 @@ export const getUserTenantsMembmership = async () => {
 };
 
 // Switch tenant context (for multi-tenant users)
-export async function switchTenant() {
+export async function switchTenant(newTenantId: string) {
   const session = await getCurrentUser();
-  const { tenantId } = await verifyTenantPermission();
 
-  // Verify user is a member of the requested tenant
-  const tenantMember = await prisma.tenantMember.findUnique({
-    where: {
-      userId_tenantId: {
-        userId: session.id,
-        tenantId: tenantId ?? "",
-      },
-    },
-    include: {
-      tenant: {
-        select: {
-          id: true,
-          name: true,
-          slug: true,
-          isActive: true,
-          deletedAt: true,
+  try {
+    // Verify user is a member of the requested tenant
+    const tenantMember = await prisma.tenantMember.findUnique({
+      where: {
+        userId_tenantId: {
+          userId: session.id,
+          tenantId: newTenantId,
         },
       },
-    },
-  });
+      include: {
+        tenant: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            isActive: true,
+            deletedAt: true,
+          },
+        },
+      },
+    });
 
-  if (!tenantMember) {
-    throw new Error("You are not a member of this workspace");
+    if (!tenantMember) {
+      throw new Error("You are not a member of this workspace");
+    }
+
+    if (tenantMember.tenant.deletedAt) {
+      throw new Error("This workspace has been deleted");
+    }
+
+    if (!tenantMember.tenant.isActive) {
+      throw new Error("This workspace is currently inactive");
+    }
+
+    // Update the current session to set the new tenantId
+    const currentSession = await auth.api.getSession();
+    if (currentSession?.session?.id) {
+      // Update the session in the database with the new tenantId
+      await prisma.session.update({
+        where: {
+          id: currentSession.session.id,
+        },
+        data: {
+          tenantId: newTenantId,
+        },
+      });
+    }
+
+    const tenant = {
+      tenantId: tenantMember.tenant.id,
+      tenantSlug: tenantMember.tenant.slug,
+      tenantName: tenantMember.tenant.name,
+      userRole: tenantMember.role,
+      permissions: tenantMember.permissions,
+    };
+
+    revalidatePath(`/dashboard/${tenant.tenantSlug}`);
+
+    return { success: true, tenant };
+  } catch (error) {
+    console.error("Error switching tenant:", error);
+    return { success: false, error: "Failed to switch workspace" };
   }
-
-  if (tenantMember.tenant.deletedAt) {
-    throw new Error("This workspace has been deleted");
-  }
-
-  if (!tenantMember.tenant.isActive) {
-    throw new Error("This workspace is currently inactive");
-  }
-
-  return {
-    tenantId: tenantMember.tenant.id,
-    tenantSlug: tenantMember.tenant.slug,
-    tenantName: tenantMember.tenant.name,
-    userRole: tenantMember.role,
-    permissions: tenantMember.permissions,
-  };
 }
 
 // CREATE: Create a new organization/tenant
 export const createTenant = async (
-  data: z.infer<typeof createTenantSchema>
+  data: z.infer<typeof createTenantSchema>,
 ) => {
   const session = await getCurrentUser();
 
@@ -354,7 +377,7 @@ export const updateTenant = async (
     currency: string;
     language: string;
     billingEmail: string;
-  }>
+  }>,
 ) => {
   try {
     const { userRole, tenantId } = await verifyTenantPermission([
@@ -587,7 +610,7 @@ export const updateMemberRole = async (
   data: {
     role: UserRole;
     permissions?: TenantPermissions;
-  }
+  },
 ) => {
   try {
     const { tenantId, userId, userRole } = await verifyTenantPermission([

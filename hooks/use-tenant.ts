@@ -8,6 +8,7 @@ import {
   getUserTenantsMembmership,
   inviteMember,
   removeMember,
+  switchTenant,
   updateMemberRole,
   updateSubscription,
   updateTenant,
@@ -161,5 +162,30 @@ export const useTenantUsage = () => {
       return result;
     },
     staleTime: 2 * 60 * 1000, // 2 minutes
+  });
+};
+
+// Hook for switching tenants
+export const useSwitchTenant = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (tenantId: string) => {
+      // Call the switch tenant action with tenantId
+      const result = await switchTenant(tenantId);
+      return result;
+    },
+    onSuccess: (data) => {
+      if (data.success) {
+        // Invalidate all tenant-related queries to refresh data
+        queryClient.invalidateQueries({ queryKey: ["tenant"] });
+        queryClient.invalidateQueries({ queryKey: ["tenants"] });
+        queryClient.invalidateQueries({ queryKey: ["tenant-members"] });
+        queryClient.invalidateQueries({ queryKey: ["tenant-usage"] });
+
+        // Clear session cache to ensure new tenant context is loaded
+        queryClient.invalidateQueries({ queryKey: ["session"] });
+      }
+    },
   });
 };

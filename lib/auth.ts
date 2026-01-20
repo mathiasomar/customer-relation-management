@@ -118,6 +118,26 @@ export const auth = betterAuth({
           return { data: session };
         },
       },
+      update: {
+        before: async (session) => {
+          // Ensure tenantId is preserved during session updates
+          const existingSession = await prisma.session.findUnique({
+            where: { id: session.id },
+            select: { tenantId: true },
+          });
+
+          if (existingSession?.tenantId && !session.tenantId) {
+            return {
+              data: {
+                ...session,
+                tenantId: existingSession.tenantId,
+              },
+            };
+          }
+
+          return { data: session };
+        },
+      },
     },
   },
   trustedOrigins:
