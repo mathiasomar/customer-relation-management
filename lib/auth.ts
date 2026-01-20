@@ -30,6 +30,12 @@ export const auth = betterAuth({
   session: {
     expiresIn: 60 * 60 * 24 * 1, // 1 days
     updateAge: 60 * 60 * 24, // 24 hours
+    additionalFields: {
+      tenantId: {
+        type: "string",
+        input: false,
+      },
+    },
   },
   user: {
     additionalFields: {
@@ -41,10 +47,6 @@ export const auth = betterAuth({
           "VIEWER",
           "MEMBER",
         ] as Array<UserRole>,
-        input: false,
-      },
-      tenantId: {
-        type: "string",
         input: false,
       },
     },
@@ -118,24 +120,23 @@ export const auth = betterAuth({
           return { data: session };
         },
       },
-      update: {
-        before: async (session) => {
-          // Ensure tenantId is preserved during session updates
-          const existingSession = await prisma.session.findUnique({
-            where: { id: session.id },
-            select: { tenantId: true },
-          });
+      get: {
+        after: async (session) => {
+          // Always fetch the latest tenantId from the session record
+          if (session && session.session?.id) {
+            const sessionRecord = await prisma.session.findUnique({
+              where: { id: session.session.id },
+              select: { tenantId: true },
+            });
 
-          if (existingSession?.tenantId && !session.tenantId) {
-            return {
-              data: {
-                ...session,
-                tenantId: existingSession.tenantId,
-              },
-            };
+            if (sessionRecord?.tenantId) {
+              // Set tenantId on both session and user for flexibility
+              session.session.tenantId = sessionRecord.tenantId;
+              session.user.tenantId = sessionRecord.tenantId;
+            }
           }
 
-          return { data: session };
+          return session;
         },
       },
     },

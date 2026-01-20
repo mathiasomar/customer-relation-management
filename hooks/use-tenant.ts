@@ -18,6 +18,16 @@ import { UserRole } from "@/generated/prisma/enums";
 import { TenantPermissions } from "@/types/tenant";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+interface CreateTenantTypes {
+  name: string;
+  slug: string;
+  timezone: string;
+  currency: string;
+  language: string;
+  website?: string;
+  industry?: string;
+}
+
 // Hook for getting current tenant
 export const useTenant = () => {
   return useQuery({
@@ -34,7 +44,7 @@ export const useTenant = () => {
 // Hook for getting all tenants
 export const useAllTenants = () => {
   return useQuery({
-    queryKey: ["tenants"],
+    queryKey: ["all-tenants"],
     queryFn: async () => {
       const result = await getAllUserTenants();
       if (!result.success) throw new Error(result.error);
@@ -61,13 +71,22 @@ export const useCreateTenant = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: createTenant,
-    onSuccess: (data) => {
-      if (data.success) {
-        // Invalidate tenant queries
-        queryClient.invalidateQueries({ queryKey: ["tenant"] });
-        queryClient.invalidateQueries({ queryKey: ["user-tenants"] });
-      }
+    mutationFn: async (data: CreateTenantTypes) => {
+      const result = await createTenant(data);
+      if (!result.success) throw new Error(result.error);
+      return result;
+    },
+    onSuccess: () => {
+      // Invalidate all tenant-related queries to refresh data
+      queryClient.invalidateQueries({ queryKey: ["tenant"] });
+      queryClient.invalidateQueries({ queryKey: ["tenants"] });
+      queryClient.invalidateQueries({ queryKey: ["all-tenants"] });
+      queryClient.invalidateQueries({ queryKey: ["tenant-members"] });
+      queryClient.invalidateQueries({ queryKey: ["tenant-usage"] });
+      queryClient.invalidateQueries({ queryKey: ["session"] });
+    },
+    onError: (error) => {
+      console.error("Failed to create tenant:", error);
     },
   });
 };
@@ -193,12 +212,16 @@ export const useSwitchTenant = () => {
         // Invalidate all tenant-related queries to refresh data
         queryClient.invalidateQueries({ queryKey: ["tenant"] });
         queryClient.invalidateQueries({ queryKey: ["tenants"] });
+        queryClient.invalidateQueries({ queryKey: ["all-tenants"] });
         queryClient.invalidateQueries({ queryKey: ["tenant-members"] });
         queryClient.invalidateQueries({ queryKey: ["tenant-usage"] });
 
         // Clear session cache to ensure new tenant context is loaded
         queryClient.invalidateQueries({ queryKey: ["session"] });
       }
+    },
+    onError: (error) => {
+      console.error("Failed to switch tenant:", error);
     },
   });
 };

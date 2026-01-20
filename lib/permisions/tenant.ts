@@ -3,17 +3,22 @@
 import { auth } from "../auth";
 import { UserRole } from "@/generated/prisma/enums";
 import { prisma } from "../prisma";
+import { headers } from "next/headers";
 
 export const getCurrentTenant = async () => {
-  const session = await auth.api.getSession();
-  if (!session?.user?.tenantId) {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  if (!session?.session?.tenantId) {
     throw new Error("Unauthorized: No tenant access");
   }
-  return session.user.tenantId;
+  return session.session.tenantId;
 };
 
 export const getCurrentUser = async () => {
-  const session = await auth.api.getSession();
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
   if (!session?.user?.id) {
     throw new Error("Unauthorized");
   }
@@ -22,19 +27,18 @@ export const getCurrentUser = async () => {
 
 // Verify user has permission in tenant with optional role requirements
 export const verifyTenantPermission = async (
-  requiredRole?: UserRole[] | string[]
+  requiredRole?: UserRole[] | string[],
 ) => {
-  const session = await auth.api.getSession();
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
 
   if (!session?.user?.id) {
     throw new Error("Unauthorized: Please sign in");
   }
 
-  if (!session.user?.tenantId) {
-    throw new Error("Unauthorized: No tenant access");
-  }
-
-  const { tenantId, role: tenantRole } = session.user;
+  const { role: tenantRole } = session.user;
+  const { tenantId } = session.session;
 
   // Verify tenant exists and user is still a member
   const tenantMember = await prisma.tenantMember.findUnique({
@@ -259,7 +263,7 @@ export async function switchTenant(tenantId: string) {
 export async function canAccessResource(
   resourceType: "contact" | "lead" | "opportunity" | "deal" | "activity",
   resourceId: string,
-  requiredPermission: "read" | "write" | "delete" = "read"
+  requiredPermission: "read" | "write" | "delete" = "read",
 ) {
   const { tenantId, userRole } = await verifyTenantPermission();
 

@@ -2,7 +2,8 @@
 
 // import { cn } from "@/lib/utils";
 import { ColumnDef } from "@tanstack/react-table";
-import { MoreHorizontal, Trash2 } from "lucide-react";
+import { MoreHorizontal } from "lucide-react";
+import { differenceInDays } from "date-fns";
 
 import { Button } from "@/components/ui/button";
 
@@ -19,15 +20,6 @@ import { DataTableColumnHeader } from "@/components/dashboard/data-table-column-
 import { Checkbox } from "@/components/ui/checkbox";
 import Image from "next/image";
 import { Tenant } from "@/types/tenant";
-
-// export type User = {
-//   id: string;
-//   image?: string | null;
-//   name: string;
-//   email: string;
-//   role: UserRole;
-//   createdAt?: Date;
-// };
 
 export const columns: ColumnDef<Tenant>[] = [
   {
@@ -59,7 +51,15 @@ export const columns: ColumnDef<Tenant>[] = [
       const tenant = row.original;
 
       return (
-        <Image src={tenant.logo || ""} alt="Logo" width={20} height={20} />
+        <>
+          {tenant.logo ? (
+            <Image src={tenant.logo} alt="Logo" width={20} height={20} />
+          ) : (
+            <p className="w-max px-1 bg-orange-500 text-white text-xs rounded-full">
+              No Logo
+            </p>
+          )}
+        </>
       );
     },
   },
@@ -82,11 +82,62 @@ export const columns: ColumnDef<Tenant>[] = [
   {
     accessorKey: "subscriptionStatus",
     header: "Subscription Status",
+    cell: ({ row }) => {
+      const tenant = row.original;
+      return (
+        <div className="flex items-center gap-2">
+          <span className="font-semibold">{tenant.subscriptionStatus}</span>
+          <span>{}</span>
+        </div>
+      );
+    },
+  },
+  {
+    accessorKey: "trialEndsAt",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Trial Expires" />
+    ),
+    cell: ({ row }) => {
+      const tenant = row.original;
+
+      if (!tenant.trialEndsAt) {
+        return <span className="text-gray-400">No trial</span>;
+      }
+
+      const trialEndDate = new Date(tenant.trialEndsAt);
+      const now = new Date();
+      const daysRemaining = differenceInDays(trialEndDate, now);
+
+      // Determine color based on days remaining
+      let bgColor = "bg-green-100 text-green-800"; // Green for > 7 days
+      if (daysRemaining <= 7 && daysRemaining > 3) {
+        bgColor = "bg-yellow-100 text-yellow-800"; // Yellow for 4-7 days
+      } else if (daysRemaining <= 3 && daysRemaining > 0) {
+        bgColor = "bg-orange-100 text-orange-800"; // Orange for 1-3 days
+      } else if (daysRemaining <= 0) {
+        bgColor = "bg-red-100 text-red-800"; // Red for expired
+      }
+
+      const statusText =
+        daysRemaining > 0
+          ? `${daysRemaining} days left`
+          : daysRemaining === 0
+            ? "Expires today"
+            : "Expired";
+
+      return (
+        <span
+          className={`px-3 py-1 rounded-full text-xs font-semibold ${bgColor}`}
+        >
+          {statusText}
+        </span>
+      );
+    },
   },
   {
     id: "actions",
     cell: ({ row }) => {
-      const user = row.original;
+      const tenant = row.original;
 
       return (
         <div className="flex items-center gap-2">
@@ -100,23 +151,18 @@ export const columns: ColumnDef<Tenant>[] = [
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
               <DropdownMenuItem
-                onClick={() => navigator.clipboard.writeText(user.id)}
+                onClick={() => navigator.clipboard.writeText(tenant.id)}
               >
                 Copy user ID
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem>
-                <Link href={`/dashboard/users/${user.id}`}>View user</Link>
+                <Link href={`/dashboard/organizations/${tenant.id}`}>
+                  View organization
+                </Link>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button
-            disabled={user.role === "ADMIN"}
-            variant={"destructive"}
-            size={"icon-sm"}
-          >
-            <Trash2 className="w-2 h-2" />
-          </Button>
         </div>
       );
     },

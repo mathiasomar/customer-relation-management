@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { useTenant, useTenants, useSwitchTenant } from "@/hooks/use-tenant";
@@ -13,18 +12,39 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { Button } from "../ui/button";
-import { ChevronsUpDown, Plus } from "lucide-react";
+import { ChevronsUpDown } from "lucide-react";
 import { Skeleton } from "../ui/skeleton";
+import AddTenant from "./add-tenant";
+import { useEffect, useState, useTransition } from "react";
 // import { cn } from "@/lib/utils";
 
 const TenantSwitcher = () => {
-  // const { data: session, isPending } = authClient.useSession();
+  const [mounted, setMounted] = useState(false);
+  const [, startTransition] = useTransition();
   const router = useRouter();
 
   const { data: dataTenants, isFetching: tenantsLoading } = useTenants();
   const { data: dataTenant, isFetching: tenantLoading } = useTenant();
   const { mutate: switchTenant, isPending: switchingTenant } =
     useSwitchTenant();
+
+  // Prevent hydration mismatch by only rendering after mount
+  useEffect(() => {
+    startTransition(() => {
+      setMounted(true);
+    });
+  }, []);
+
+  if (!mounted) {
+    return (
+      <div className="flex items-center gap-2">
+        <Button variant="outline" className="w-full justify-between" disabled>
+          <span className="truncate">Loading...</span>
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </div>
+    );
+  }
 
   const currentTenant = {
     name: tenantLoading ? "Loading..." : dataTenant?.name || "No tenant",
@@ -49,9 +69,6 @@ const TenantSwitcher = () => {
   };
   return (
     <div className="flex items-center gap-2">
-      <div className="relative size-8">
-        <Image src="/side.svg" alt="Logo" fill className="object-cover" />
-      </div>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="outline" className="w-full justify-between">
@@ -85,11 +102,8 @@ const TenantSwitcher = () => {
           )}
 
           <DropdownMenuSeparator />
-          <DropdownMenuItem
-            onClick={() => router.push("/dashboard/organizations/new")}
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            Create New Workspace
+          <DropdownMenuItem asChild>
+            <AddTenant type="switcher" />
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

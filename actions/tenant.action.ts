@@ -18,14 +18,15 @@ import {
   verifyTenantPermission,
 } from "@/lib/permisions/tenant";
 import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 
 // Schema for tenant creation
 const createTenantSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   slug: z
     .string()
-    .min(2)
-    .max(50)
+    .min(2, { message: "Slug must be at least 2 characters" })
+    .max(50, { message: "Slug must be at most 50 characters" })
     .regex(
       /^[a-z0-9-]+$/,
       "Slug can only contain lowercase letters, numbers, and hyphens",
@@ -103,6 +104,8 @@ export const getAllUserTenants = async () => {
             logo: true,
             subscriptionStatus: true,
             plan: true,
+            trialEndsAt: true,
+            currentPeriodEnds: true,
           },
         },
       },
@@ -118,6 +121,8 @@ export const getAllUserTenants = async () => {
       logo: tm.tenant.logo,
       subscriptionStatus: tm.tenant.subscriptionStatus,
       plan: tm.tenant.plan,
+      trialEndsAt: tm.tenant.trialEndsAt,
+      currentPeriodEnds: tm.tenant.currentPeriodEnds,
     }));
 
     return { success: true, tenants };
@@ -166,17 +171,28 @@ export async function switchTenant(newTenantId: string) {
     }
 
     // Update the current session to set the new tenantId
-    const currentSession = await auth.api.getSession();
-    if (currentSession?.session?.id) {
-      // Update the session in the database with the new tenantId
-      await prisma.session.update({
-        where: {
-          id: currentSession.session.id,
-        },
-        data: {
-          tenantId: newTenantId,
-        },
+    try {
+      const headersList = await headers();
+      const currentSession = await auth.api.getSession({
+        headers: headersList,
       });
+      if (currentSession?.session?.id) {
+        // Update the session in the database with the new tenantId
+        await prisma.session.update({
+          where: {
+            id: currentSession.session.id,
+          },
+          data: {
+            tenantId: newTenantId,
+          },
+        });
+      }
+    } catch (sessionError) {
+      console.error(
+        "Error updating session after tenant switch:",
+        sessionError,
+      );
+      // Don't fail the whole operation if session update fails
     }
 
     const tenant = {
@@ -225,12 +241,18 @@ export const createTenant = async (
       };
     }
 
+    const normalizeName = validatedData.name
+      .trim()
+      .replace(/\s+/g, " ")
+      .replace(/[^a-zA-Z\s'-]/g, "")
+      .replace(/\b\w/g, (char) => char.toUpperCase());
+
     // Create tenant with transaction
     const result = await prisma.$transaction(async (tx) => {
       // Create tenant
       const tenant = await tx.tenant.create({
         data: {
-          name: validatedData.name,
+          name: normalizeName,
           slug,
           website: validatedData.website || null,
           industry: validatedData.industry || null,
@@ -340,20 +362,33 @@ export const createTenant = async (
     });
 
     // Update the current session to set the new tenant as default
-    const currentSession = await auth.api.getSession();
-    if (currentSession?.session?.id) {
-      await prisma.session.update({
-        where: {
-          id: currentSession.session.id,
-        },
-        data: {
-          tenantId: result.id,
-        },
+    try {
+      const headersList = await headers();
+      const currentSession = await auth.api.getSession({
+        headers: headersList,
       });
+
+      if (currentSession?.session?.id) {
+        await prisma.session.update({
+          where: {
+            id: currentSession.session.id,
+          },
+          data: {
+            tenantId: result.id,
+          },
+        });
+      }
+    } catch (sessionError) {
+      console.error(
+        "Error updating session after tenant creation:",
+        sessionError,
+      );
+      // Don't fail the whole operation if session update fails
     }
 
     revalidatePath("/dashboard");
-    revalidatePath("/settings/organization");
+    revalidatePath("/dashboard/organizations");
+    revalidatePath("/dashboard/settings");
 
     return {
       success: true,

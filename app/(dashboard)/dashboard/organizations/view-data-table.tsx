@@ -1,19 +1,17 @@
 "use client";
 
 import { DataTableSkeleton } from "@/components/dashboard/loaders/data-table-skeleton";
-import { useTenants } from "@/hooks/use-tenant";
+import { useAllTenants } from "@/hooks/use-tenant";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
 import { DataTable } from "./data-table";
 import { columns } from "./columns";
 import { Tenant } from "@/types/tenant";
+import AddTenant from "@/components/dashboard/add-tenant";
 
 const ViewDataTable = () => {
-  const { data: tenants, isFetching } = useTenants();
+  const { data: tenants, isFetching } = useAllTenants();
   return (
     <>
-      {tenants?.length}
       {isFetching ? (
         <DataTableSkeleton />
       ) : tenants?.length === 0 || !tenants ? (
@@ -23,11 +21,7 @@ const ViewDataTable = () => {
               <h1 className="text-sm text-muted-foreground">
                 No Organizations
               </h1>
-              <Button asChild>
-                <Link href="/dashboard/organizations/new">
-                  Create Organization
-                </Link>
-              </Button>
+              <AddTenant type="empty" />
             </CardContent>
           </Card>
         </div>

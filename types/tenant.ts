@@ -15,7 +15,8 @@ export type Tenant = {
   name: string;
   slug: string;
   logo?: string | null;
-  role: UserRole;
   plan: string;
   subscriptionStatus: SubscriptionStatus;
+  trialEndsAt?: Date | null;
+  currentPeriodEndsAt?: Date | null;
 };
