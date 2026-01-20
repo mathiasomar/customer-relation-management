@@ -62,13 +62,13 @@ const SigninForm = () => {
         },
         onSuccess: () => {
           toast.success("Account verified successfully! Redirecting...");
-          setLoading(false);
+          setLoading(true);
         },
         onError: (ctx) => {
           toast.error(ctx.error.message);
           setLoading(false);
         },
-      }
+      },
     );
   };
   return (
@@ -91,6 +91,7 @@ const SigninForm = () => {
                 aria-invalid={fieldState.invalid}
                 placeholder="Enter Email"
                 autoComplete="off"
+                disabled={loading}
               />
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
             </Field>
@@ -109,6 +110,7 @@ const SigninForm = () => {
                 aria-invalid={fieldState.invalid}
                 placeholder="********"
                 autoComplete="off"
+                disabled={loading}
               />
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
             </Field>

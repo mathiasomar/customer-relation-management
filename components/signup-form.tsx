@@ -44,7 +44,7 @@ const formSchema = z
     {
       message: "Password do not match",
       path: ["confirmPassword"],
-    }
+    },
   );
 
 const SignupForm = () => {
@@ -76,14 +76,14 @@ const SignupForm = () => {
         onSuccess: () => {
           toast.success("Account created successfully✅!");
           form.reset();
-          setLoading(false);
+          setLoading(true);
           router.push("/sign-in");
         },
         onError: (ctx) => {
           toast.error(ctx.error.message);
           setLoading(false);
         },
-      }
+      },
     );
   };
   return (
@@ -106,6 +106,7 @@ const SignupForm = () => {
                 aria-invalid={fieldState.invalid}
                 placeholder="Enter Full Name"
                 autoComplete="off"
+                disabled={loading}
               />
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
             </Field>
@@ -123,6 +124,7 @@ const SignupForm = () => {
                 aria-invalid={fieldState.invalid}
                 placeholder="Enter Email"
                 autoComplete="off"
+                disabled={loading}
               />
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
               <FieldDescription>Only admin can see your email</FieldDescription>
@@ -142,6 +144,7 @@ const SignupForm = () => {
                 aria-invalid={fieldState.invalid}
                 placeholder="********"
                 autoComplete="off"
+                disabled={loading}
               />
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
             </Field>
@@ -160,6 +163,7 @@ const SignupForm = () => {
                 aria-invalid={fieldState.invalid}
                 placeholder="********"
                 autoComplete="off"
+                disabled={loading}
               />
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
             </Field>
