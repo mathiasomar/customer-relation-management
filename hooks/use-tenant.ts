@@ -2,6 +2,7 @@
 
 import {
   createTenant,
+  getAllUserTenants,
   getTenant,
   getTenantMembers,
   getTenantUsage,
@@ -31,6 +32,18 @@ export const useTenant = () => {
 };
 
 // Hook for getting all tenants
+export const useAllTenants = () => {
+  return useQuery({
+    queryKey: ["tenants"],
+    queryFn: async () => {
+      const result = await getAllUserTenants();
+      if (!result.success) throw new Error(result.error);
+      return result.tenants;
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+};
+
 export const useTenants = () => {
   return useQuery({
     queryKey: ["tenants"],

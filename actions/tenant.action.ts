@@ -85,6 +85,48 @@ export const getUserTenantsMembmership = async () => {
   }
 };
 
+// Get user all tenants
+export const getAllUserTenants = async () => {
+  const session = await getCurrentUser();
+
+  try {
+    const tenantMemberships = await prisma.tenantMember.findMany({
+      where: {
+        userId: session.id,
+      },
+      include: {
+        tenant: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            logo: true,
+            subscriptionStatus: true,
+            plan: true,
+          },
+        },
+      },
+      orderBy: {
+        joinedAt: "desc",
+      },
+    });
+
+    const tenants = tenantMemberships.map((tm) => ({
+      id: tm.tenant.id,
+      name: tm.tenant.name,
+      slug: tm.tenant.slug,
+      logo: tm.tenant.logo,
+      subscriptionStatus: tm.tenant.subscriptionStatus,
+      plan: tm.tenant.plan,
+    }));
+
+    return { success: true, tenants };
+  } catch (error) {
+    console.error("Error fetching tenant:", error);
+    return { success: false, error: "Failed to load workspace details" };
+  }
+};
+
 // Switch tenant context (for multi-tenant users)
 export async function switchTenant(newTenantId: string) {
   const session = await getCurrentUser();

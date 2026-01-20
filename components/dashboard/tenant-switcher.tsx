@@ -18,7 +18,7 @@ import { Skeleton } from "../ui/skeleton";
 // import { cn } from "@/lib/utils";
 
 const TenantSwitcher = () => {
-  const { data: session, isPending } = authClient.useSession();
+  // const { data: session, isPending } = authClient.useSession();
   const router = useRouter();
 
   const { data: dataTenants, isFetching: tenantsLoading } = useTenants();
@@ -85,7 +85,9 @@ const TenantSwitcher = () => {
           )}
 
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => router.push("/create-tenant")}>
+          <DropdownMenuItem
+            onClick={() => router.push("/dashboard/organizations/new")}
+          >
             <Plus className="mr-2 h-4 w-4" />
             Create New Workspace
           </DropdownMenuItem>
