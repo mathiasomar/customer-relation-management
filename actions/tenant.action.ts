@@ -339,6 +339,19 @@ export const createTenant = async (
       return tenant;
     });
 
+    // Update the current session to set the new tenant as default
+    const currentSession = await auth.api.getSession();
+    if (currentSession?.session?.id) {
+      await prisma.session.update({
+        where: {
+          id: currentSession.session.id,
+        },
+        data: {
+          tenantId: result.id,
+        },
+      });
+    }
+
     revalidatePath("/dashboard");
     revalidatePath("/settings/organization");
 
