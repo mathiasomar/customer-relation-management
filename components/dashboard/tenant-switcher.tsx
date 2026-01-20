@@ -47,8 +47,16 @@ const TenantSwitcher = () => {
   }
 
   const currentTenant = {
-    name: tenantLoading ? "Loading..." : dataTenant?.name || "No tenant",
-    slug: tenantLoading ? "loading" : dataTenant?.slug || "no-tenant",
+    name: tenantLoading
+      ? "Loading..."
+      : dataTenant?.error
+        ? "No Access"
+        : dataTenant?.tenant?.name || "No tenant",
+    slug: tenantLoading
+      ? "loading"
+      : dataTenant?.error
+        ? "No Access"
+        : dataTenant?.tenant?.slug || "no-tenant",
   };
 
   const handleTenantSwitch = async (tenantSlug: string) => {

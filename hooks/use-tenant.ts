@@ -35,7 +35,7 @@ export const useTenant = () => {
     queryFn: async () => {
       const result = await getTenant();
       if (!result.success) throw new Error(result.error);
-      return result.tenant;
+      return result;
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
   });

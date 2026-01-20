@@ -424,6 +424,14 @@ export const createTenant = async (
 
 // READ: Get current tenant details
 export const getTenant = async () => {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session?.session.tenantId) {
+    return { success: false, error: "Unauthorized: No tenant access" };
+  }
+
   const { tenantId } = await verifyTenantPermission();
   try {
     const tenant = await prisma.tenant.findUnique({
