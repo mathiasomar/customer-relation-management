@@ -8,8 +8,9 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
 import ViewDataTable from "./view-data-table";
+import Link from "next/link";
+import { Plus } from "lucide-react";
 
 const OrganizationPage = () => {
   return (
@@ -27,8 +28,14 @@ const OrganizationPage = () => {
       </Breadcrumb>
       <div className="flex items-center justify-between mb-8 px-4 py-2 bg-secondary rounded-md">
         <h1 className="font-semiboldnn">Organizations</h1>
-        <Button>
-          <Plus /> Create Organization
+        <Button asChild>
+          <Link
+            href="/dashboard/organizations/new"
+            className="flex items-center"
+          >
+            <Plus className="mr-2" />
+            New Organization
+          </Link>
         </Button>
       </div>
       <div className="my-4">
