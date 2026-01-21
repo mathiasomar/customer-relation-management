@@ -12,6 +12,8 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { useTenant } from "@/hooks/use-tenant";
 import { Contact2, Handshake, Lightbulb, Target, Users2 } from "lucide-react";
+import OrgDetails from "./details";
+import { Tenant } from "@/generated/prisma/client";
 
 const TenantPage = () => {
   const { data, isFetching } = useTenant();
@@ -43,12 +45,12 @@ const TenantPage = () => {
       ) : (
         <>
           {/* Stat grids */}
-          <div className="grid grid-cols-12 gap-4 w-full">
-            <div className="col-span-12 md:col-span-4 lg:col-span-3 xl:col-span-2">
+          <div className="grid grid-cols-5 gap-4 w-full">
+            <div className="col-span-4 md:col-span-2 lg:col-span-1 xl:col-span-1">
               <Card className="p-0">
                 <CardContent className="flex items-start justify-between gap-2 px-4 py-2">
                   <span>
-                    <Contact2 className="w-15 h-15 opacity-70" />
+                    <Contact2 className="w-10 h-10 opacity-70" />
                   </span>
                   <div className="flex flex-col gap-2">
                     <h1 className="font-bold text-2xl">
@@ -61,11 +63,11 @@ const TenantPage = () => {
                 </CardContent>
               </Card>
             </div>
-            <div className="col-span-12 md:col-span-4 lg:col-span-3 xl:col-span-2">
+            <div className="col-span-4 md:col-span-2 lg:col-span-1 xl:col-span-1">
               <Card className="p-0">
                 <CardContent className="flex items-start justify-between gap-2 px-4 py-2">
                   <span>
-                    <Target className="w-15 h-15 opacity-70" />
+                    <Target className="w-10 h-10 opacity-70" />
                   </span>
                   <div className="flex flex-col gap-2">
                     <h1 className="font-bold text-2xl">
@@ -78,11 +80,11 @@ const TenantPage = () => {
                 </CardContent>
               </Card>
             </div>
-            <div className="col-span-12 md:col-span-4 lg:col-span-3 xl:col-span-2">
+            <div className="col-span-4 md:col-span-2 lg:col-span-1 xl:col-span-1">
               <Card className="p-0">
                 <CardContent className="flex items-start justify-between gap-2 px-4 py-2">
                   <span>
-                    <Users2 className="w-15 h-15 opacity-70" />
+                    <Users2 className="w-10 h-10 opacity-70" />
                   </span>
                   <div className="flex flex-col gap-2">
                     <h1 className="font-bold text-2xl">
@@ -95,11 +97,11 @@ const TenantPage = () => {
                 </CardContent>
               </Card>
             </div>
-            <div className="col-span-12 md:col-span-4 lg:col-span-3 xl:col-span-2">
+            <div className="col-span-4 md:col-span-2 lg:col-span-1 xl:col-span-1">
               <Card className="p-0">
                 <CardContent className="flex items-start justify-between gap-2 px-4 py-2">
                   <span>
-                    <Handshake className="w-15 h-15 opacity-70" />
+                    <Handshake className="w-10 h-10 opacity-70" />
                   </span>
                   <div className="flex flex-col gap-2">
                     <h1 className="font-bold text-2xl">
@@ -112,11 +114,11 @@ const TenantPage = () => {
                 </CardContent>
               </Card>
             </div>
-            <div className="col-span-12 md:col-span-4 lg:col-span-3 xl:col-span-2">
+            <div className="col-span-4 md:col-span-2 lg:col-span-1 xl:col-span-1">
               <Card className="p-0">
                 <CardContent className="flex items-start justify-between gap-2 px-4 py-2">
                   <span>
-                    <Lightbulb className="w-15 h-15 opacity-70" />
+                    <Lightbulb className="w-10 h-10 opacity-70" />
                   </span>
                   <div className="flex flex-col gap-2">
                     <h1 className="font-bold text-2xl">
@@ -129,6 +131,11 @@ const TenantPage = () => {
                 </CardContent>
               </Card>
             </div>
+          </div>
+
+          {/* Details */}
+          <div className="w-full mt-4">
+            <OrgDetails tenant={data?.tenant as Tenant} />
           </div>
         </>
       )}
