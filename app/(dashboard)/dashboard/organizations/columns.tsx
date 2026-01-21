@@ -17,33 +17,33 @@ import {
 } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
 import { DataTableColumnHeader } from "@/components/dashboard/data-table-column-header";
-import { Checkbox } from "@/components/ui/checkbox";
+// import { Checkbox } from "@/components/ui/checkbox";
 import Image from "next/image";
 import { Tenant } from "@/types/tenant";
 
 export const columns: ColumnDef<Tenant>[] = [
-  {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
+  // {
+  //   id: "select",
+  //   header: ({ table }) => (
+  //     <Checkbox
+  //       checked={
+  //         table.getIsAllPageRowsSelected() ||
+  //         (table.getIsSomePageRowsSelected() && "indeterminate")
+  //       }
+  //       onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+  //       aria-label="Select all"
+  //     />
+  //   ),
+  //   cell: ({ row }) => (
+  //     <Checkbox
+  //       checked={row.getIsSelected()}
+  //       onCheckedChange={(value) => row.toggleSelected(!!value)}
+  //       aria-label="Select row"
+  //     />
+  //   ),
+  //   enableSorting: false,
+  //   enableHiding: false,
+  // },
   {
     accessorKey: "logo",
     header: "Logo",
@@ -74,6 +74,10 @@ export const columns: ColumnDef<Tenant>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Slug" />
     ),
+  },
+  {
+    accessorKey: "memberCount",
+    header: "Member Count",
   },
   {
     accessorKey: "plan",
@@ -130,6 +134,43 @@ export const columns: ColumnDef<Tenant>[] = [
           className={`px-3 py-1 rounded-full text-xs font-semibold ${bgColor}`}
         >
           {statusText}
+        </span>
+      );
+    },
+  },
+  {
+    accessorKey: "createdAt",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Created At" />
+    ),
+    cell: ({ row }) => {
+      const tenant = row.original;
+      const createdAtDate = new Date(tenant.createdAt);
+      return (
+        <span>
+          {createdAtDate.toLocaleDateString(undefined, {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+          })}
+        </span>
+      );
+    },
+  },
+  {
+    accessorKey: "isActive",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Active Status" />
+    ),
+    cell: ({ row }) => {
+      const tenant = row.original;
+      return tenant.isActive ? (
+        <span className="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
+          Active
+        </span>
+      ) : (
+        <span className="px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800">
+          Inactive
         </span>
       );
     },

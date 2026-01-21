@@ -1,4 +1,4 @@
-import { SubscriptionStatus, UserRole } from "@/generated/prisma/enums";
+import { SubscriptionStatus } from "@/generated/prisma/enums";
 
 export type TenantPermissions = {
   [key: string]:
@@ -19,4 +19,7 @@ export type Tenant = {
   subscriptionStatus: SubscriptionStatus;
   trialEndsAt?: Date | null;
   currentPeriodEndsAt?: Date | null;
+  createdAt: Date;
+  isActive: boolean;
+  memberCount: number;
 };
