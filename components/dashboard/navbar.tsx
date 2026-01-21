@@ -16,7 +16,7 @@ import { ModeToggle } from "../mode-toggle";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { authClient } from "@/lib/auth-client";
 import { Spinner } from "../ui/spinner";
-import TenantSwitcher from "./tenant-switcher";
+// import TenantSwitcher from "./tenant-switcher";
 
 const Navbar = () => {
   const handleLogout = async () => {
@@ -33,7 +33,7 @@ const Navbar = () => {
       {/* LEFT */}
       <div className="flex gap-4 items-center">
         <SidebarTrigger />
-        <TenantSwitcher />
+        {/* <TenantSwitcher /> */}
       </div>
       {/* RIGHT */}
       <div className="flex items-center gap-4">

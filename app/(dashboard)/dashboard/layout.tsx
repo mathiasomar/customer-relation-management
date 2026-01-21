@@ -1,5 +1,6 @@
 import AppSidebar from "@/components/dashboard/app-sidebar";
 import Navbar from "@/components/dashboard/navbar";
+import TenantSwitcher from "@/components/dashboard/tenant-switcher";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { auth } from "@/lib/auth";
 import { cookies, headers } from "next/headers";
@@ -21,6 +22,9 @@ const layout = async ({ children }: { children: React.ReactNode }) => {
       <AppSidebar />
       <main className="w-full">
         <Navbar />
+        <div className="p-4 w-full">
+          <TenantSwitcher />
+        </div>
         <div className="p-4 w-full">{children}</div>
         {/* <Toaster position="top-right" reverseOrder={false} /> */}
       </main>
