@@ -29,7 +29,7 @@ const Navbar = () => {
   //   const { data: session } = authClient.useSession();
   //   if (!session) return null;
   return (
-    <nav className="p-4 flex items-center justify-between sticky bg-background top-0 z-10">
+    <nav className="p-4 flex items-center justify-between sticky bg-background top-0 z-2">
       {/* LEFT */}
       <div className="flex gap-4 items-center">
         <SidebarTrigger />

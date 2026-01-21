@@ -106,6 +106,9 @@ export const getAllUserTenants = async () => {
             plan: true,
             trialEndsAt: true,
             currentPeriodEnds: true,
+            createdAt: true,
+            isActive: true,
+            members: true,
           },
         },
       },
@@ -123,6 +126,9 @@ export const getAllUserTenants = async () => {
       plan: tm.tenant.plan,
       trialEndsAt: tm.tenant.trialEndsAt,
       currentPeriodEnds: tm.tenant.currentPeriodEnds,
+      createdAt: tm.tenant.createdAt,
+      isActive: tm.tenant.isActive,
+      memberCount: tm.tenant.members.length,
     }));
 
     return { success: true, tenants };

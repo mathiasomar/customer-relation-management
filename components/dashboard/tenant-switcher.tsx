@@ -12,16 +12,18 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { Button } from "../ui/button";
-import { ChevronsUpDown } from "lucide-react";
+import { ChevronsUpDown, View } from "lucide-react";
 import { Skeleton } from "../ui/skeleton";
 import AddTenant from "./add-tenant";
 import { useEffect, useState, useTransition } from "react";
+import Link from "next/link";
 // import { cn } from "@/lib/utils";
 
 const TenantSwitcher = () => {
   const [mounted, setMounted] = useState(false);
   const [, startTransition] = useTransition();
   const router = useRouter();
+  const { data: sesssion } = authClient.useSession();
 
   const { data: dataTenants, isFetching: tenantsLoading } = useTenants();
   const { data: dataTenant, isFetching: tenantLoading } = useTenant();
@@ -76,7 +78,7 @@ const TenantSwitcher = () => {
     }
   };
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2 w-max">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="outline" className="w-full justify-between">
@@ -115,6 +117,13 @@ const TenantSwitcher = () => {
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+      {sesssion?.session.tenantId && (
+        <Button asChild>
+          <Link href="/dashboard/organizations/view">
+            <View />
+          </Link>
+        </Button>
+      )}
     </div>
   );
 };

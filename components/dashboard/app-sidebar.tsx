@@ -7,6 +7,7 @@ import {
   Contact2,
   Home,
   Lightbulb,
+  LineChart,
   Logs,
   Package,
   Settings,
@@ -76,6 +77,11 @@ const items = [
     title: "Reports",
     url: "/dashboard/reports",
     icon: BarChart,
+  },
+  {
+    title: "Analytics",
+    url: "/dashboard/analytics",
+    icon: LineChart,
   },
   {
     title: "Logs",
