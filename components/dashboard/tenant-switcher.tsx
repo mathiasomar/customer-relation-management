@@ -17,6 +17,7 @@ import { Skeleton } from "../ui/skeleton";
 import AddTenant from "./add-tenant";
 import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
+import { cn } from "@/lib/utils";
 // import { cn } from "@/lib/utils";
 
 const TenantSwitcher = () => {
@@ -59,6 +60,7 @@ const TenantSwitcher = () => {
       : dataTenant?.error
         ? "No Access"
         : dataTenant?.tenant?.slug || "no-tenant",
+    role: tenantLoading ? "loading" : dataTenant?.userRole || "NO-ROLE",
   };
 
   const handleTenantSwitch = async (tenantSlug: string) => {
@@ -118,11 +120,27 @@ const TenantSwitcher = () => {
         </DropdownMenuContent>
       </DropdownMenu>
       {sesssion?.session.tenantId && (
-        <Button asChild>
-          <Link href="/dashboard/organizations/view">
-            <View />
-          </Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button asChild>
+            <Link href="/dashboard/organizations/view">
+              <View />
+            </Link>
+          </Button>
+          <span
+            className={cn(
+              "px-2 py-1 rounded-sm text-xs font-medium",
+              currentTenant.role === "ADMIN" || currentTenant.role === "MANAGER"
+                ? "bg-red-100 text-red-800"
+                : "bg-blue-100 text-blue-800",
+            )}
+          >
+            {currentTenant.role
+              ?.toLowerCase()
+              .split(" ")
+              .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+              .join(" ") || "No Role Assigned"}
+          </span>
+        </div>
       )}
     </div>
   );

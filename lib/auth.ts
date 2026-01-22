@@ -45,7 +45,7 @@ export const auth = betterAuth({
           "ADMIN",
           "MANAGER",
           "VIEWER",
-          "MEMBER",
+          "USER",
         ] as Array<UserRole>,
         input: false,
       },
@@ -149,7 +149,7 @@ export const auth = betterAuth({
     nextCookies(),
     lastLoginMethod(),
     admin({
-      defaultRole: UserRole.AGENT,
+      defaultRole: UserRole.USER,
       adminRoles: [UserRole.ADMIN],
       ac,
       roles,

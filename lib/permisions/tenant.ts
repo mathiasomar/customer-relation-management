@@ -1,7 +1,7 @@
 "use server";
 
 import { auth } from "../auth";
-import { UserRole } from "@/generated/prisma/enums";
+import { TenantMemberRole } from "@/generated/prisma/enums";
 import { prisma } from "../prisma";
 import { headers } from "next/headers";
 
@@ -27,7 +27,7 @@ export const getCurrentUser = async () => {
 
 // Verify user has permission in tenant with optional role requirements
 export const verifyTenantPermission = async (
-  requiredRole?: UserRole[] | string[],
+  requiredRole?: TenantMemberRole[] | string[],
 ) => {
   const session = await auth.api.getSession({
     headers: await headers(),
@@ -280,7 +280,7 @@ export async function canAccessResource(
         where: {
           id: resourceId,
           tenantId,
-          ...(requiredPermission === "write" && userRole === "AGENT"
+          ...(requiredPermission === "write" && userRole === "MEMBER"
             ? { assigneeId: (await getCurrentUser()).id }
             : {}),
         },
@@ -292,7 +292,7 @@ export async function canAccessResource(
         where: {
           id: resourceId,
           tenantId,
-          ...(requiredPermission === "write" && userRole === "AGENT"
+          ...(requiredPermission === "write" && userRole === "MEMBER"
             ? { assigneeId: (await getCurrentUser()).id }
             : {}),
         },
@@ -304,7 +304,7 @@ export async function canAccessResource(
         where: {
           id: resourceId,
           tenantId,
-          ...(requiredPermission === "write" && userRole === "AGENT"
+          ...(requiredPermission === "write" && userRole === "MEMBER"
             ? { assigneeId: (await getCurrentUser()).id }
             : {}),
         },
@@ -316,7 +316,7 @@ export async function canAccessResource(
         where: {
           id: resourceId,
           tenantId,
-          ...(requiredPermission === "write" && userRole === "AGENT"
+          ...(requiredPermission === "write" && userRole === "MEMBER"
             ? { assigneeId: (await getCurrentUser()).id }
             : {}),
         },

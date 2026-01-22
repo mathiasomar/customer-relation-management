@@ -8,6 +8,7 @@ import { prisma } from "@/lib/prisma";
 import {
   BillingInterval,
   SubscriptionStatus,
+  TenantMemberRole,
   UserRole,
 } from "@/generated/prisma/enums";
 import { Prisma } from "@/generated/prisma/client";
@@ -614,7 +615,7 @@ export const getTenantMembers = async () => {
 // CREATE: Invite new member to tenant
 export const inviteMember = async (data: {
   email: string;
-  role: UserRole;
+  role: TenantMemberRole;
   permissions?: TenantPermissions;
 }) => {
   try {
@@ -644,7 +645,7 @@ export const inviteMember = async (data: {
           email: data.email,
           name: data.email.split("@")[0], // Default name from email
           emailVerified: false,
-          role: "MEMBER", // Default role until they accept invitation
+          role: "USER", // Default role until they accept invitation
         },
       });
     }
@@ -682,7 +683,7 @@ export const inviteMember = async (data: {
       data: {
         userId: user.id,
         tenantId: tenantId ?? "",
-        role: data.role as UserRole,
+        role: data.role as TenantMemberRole,
         permissions: perm as InputJsonValue | undefined,
         invitedBy: userId,
       },
@@ -772,7 +773,7 @@ export const updateMemberRole = async (
     const updatedMember = await prisma.tenantMember.update({
       where: { id: memberId, tenantId },
       data: {
-        role: data.role as UserRole,
+        role: data.role as TenantMemberRole,
         permissions: data.permissions,
       },
     });
