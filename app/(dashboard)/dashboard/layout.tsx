@@ -1,3 +1,4 @@
+import AddTenantStarter from "@/components/dashboard/add-tenant-starter";
 import AppSidebar from "@/components/dashboard/app-sidebar";
 import Navbar from "@/components/dashboard/navbar";
 // import TenantSwitcher from "@/components/dashboard/tenant-switcher";
@@ -16,6 +17,16 @@ const layout = async ({ children }: { children: React.ReactNode }) => {
   });
 
   if (!session) redirect("/");
+
+  if (!session.session.tenantId) {
+    return (
+      <div className="bg-background w-full h-screen flex items-center justify-center">
+        <div className="min-w-sm">
+          <AddTenantStarter />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <SidebarProvider defaultOpen={defaultOpen}>
