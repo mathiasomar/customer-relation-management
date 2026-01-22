@@ -37,7 +37,6 @@ export const verifyTenantPermission = async (
     throw new Error("Unauthorized: Please sign in");
   }
 
-  const { role: tenantRole } = session.user;
   const { tenantId } = session.session;
 
   // Verify tenant exists and user is still a member
@@ -112,7 +111,7 @@ export const verifyTenantPermission = async (
 
   // Check role permissions if required
   if (requiredRole && requiredRole.length > 0) {
-    const hasRequiredRole = requiredRole.includes(tenantRole as UserRole);
+    const hasRequiredRole = requiredRole.includes(tenantMember.role);
 
     if (!hasRequiredRole) {
       return {
@@ -124,7 +123,7 @@ export const verifyTenantPermission = async (
   }
 
   return {
-    userRole: tenantRole as UserRole,
+    userRole: tenantMember.role,
     tenantId,
     userId: session.user.id,
     tenantMember,

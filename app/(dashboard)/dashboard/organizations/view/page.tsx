@@ -24,7 +24,7 @@ import {
   View,
 } from "lucide-react";
 import OrgDetails from "./details";
-import { Activity, Tenant } from "@/generated/prisma/client";
+import { Tenant } from "@/generated/prisma/client";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import InviteMember from "@/components/dashboard/invite-member";
@@ -36,6 +36,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { cn } from "@/lib/utils";
 
 const StatCard = ({
   icon,
@@ -93,7 +94,9 @@ const TenantPage = () => {
 
         {/* Buttons */}
         <div className="flex items-center-safe gap-2">
-          <InviteMember />
+          {data?.userRole === "ADMIN" || data?.userRole === "MANAGER" ? (
+            <InviteMember />
+          ) : null}
           <Button size={"sm"} asChild>
             <Link href="/dashboard/organizations/view/members">
               <View className="w-4 h-4" />
@@ -154,6 +157,24 @@ const TenantPage = () => {
                 url="/dashboard/organizations/opportunities"
               />
             </div>
+          </div>
+
+          <div className="my-4 flex items-center gap-2">
+            <span className="font-semibold text-sm">Membership:</span>
+            <span
+              className={cn(
+                "px-2 py-1 rounded-sm text-xs font-medium",
+                data?.userRole === "ADMIN" || data?.userRole === "MANAGER"
+                  ? "bg-red-100 text-red-800"
+                  : "bg-blue-100 text-blue-800",
+              )}
+            >
+              {data?.userRole
+                ?.toLowerCase()
+                .split(" ")
+                .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(" ") || "No Role Assigned"}
+            </span>
           </div>
 
           {/* Details */}
