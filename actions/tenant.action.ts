@@ -438,7 +438,7 @@ export const getTenant = async () => {
     return { success: false, error: "Unauthorized: No tenant access" };
   }
 
-  const { tenantId } = await verifyTenantPermission();
+  const { tenantId, userRole } = await verifyTenantPermission();
   try {
     const tenant = await prisma.tenant.findUnique({
       where: { id: tenantId },
@@ -463,7 +463,7 @@ export const getTenant = async () => {
       };
     }
 
-    return { success: true, tenant };
+    return { success: true, tenant, userRole };
   } catch (error) {
     console.error("Error fetching tenant:", error);
     return { success: false, error: "Failed to load workspace details" };
@@ -614,7 +614,7 @@ export const getTenantMembers = async () => {
 // CREATE: Invite new member to tenant
 export const inviteMember = async (data: {
   email: string;
-  role: string;
+  role: UserRole;
   permissions?: TenantPermissions;
 }) => {
   try {
@@ -666,13 +666,24 @@ export const inviteMember = async (data: {
       };
     }
 
+    let perm = {};
+
+    if (data.role === "ADMIN" || data.role === "MANAGER") {
+      perm = {
+        canManageUsers: data.permissions?.canManageUsers ?? false,
+        canManageSettings: data.permissions?.canManageSettings ?? false,
+        canManageBilling: data.permissions?.canManageBilling ?? false,
+        canManageIntegrations: data.permissions?.canManageIntegrations ?? false,
+      };
+    }
+
     // Add user as member
     const member = await prisma.tenantMember.create({
       data: {
         userId: user.id,
         tenantId: tenantId ?? "",
         role: data.role as UserRole,
-        permissions: data.permissions as InputJsonValue | undefined,
+        permissions: perm as InputJsonValue | undefined,
         invitedBy: userId,
       },
     });
@@ -691,7 +702,9 @@ export const inviteMember = async (data: {
       },
     });
 
-    revalidatePath("/settings/team");
+    revalidatePath("/dashboard/organizations/view/members");
+    revalidatePath("/dashboard/organizations/view");
+    revalidatePath("/dashboard/organizations");
 
     return {
       success: true,

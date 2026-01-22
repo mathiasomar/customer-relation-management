@@ -140,10 +140,21 @@ export const useInviteMember = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: inviteMember,
+    mutationFn: async (data: {
+      email: string;
+      role: UserRole;
+      permissions?: TenantPermissions;
+    }) => {
+      const result = await inviteMember(data);
+      if (!result.success) throw new Error(result.error);
+      return result;
+    },
     onSuccess: (data) => {
       if (data.success) {
         queryClient.invalidateQueries({ queryKey: ["tenant-members"] });
+        queryClient.invalidateQueries({ queryKey: ["tenant-usage"] });
+        queryClient.invalidateQueries({ queryKey: ["session"] });
+        queryClient.invalidateQueries({ queryKey: ["tenant"] });
       }
     },
   });

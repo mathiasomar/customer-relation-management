@@ -59,14 +59,14 @@ const AddTenant = ({ type }: { type: "switcher" | "button" | "empty" }) => {
         onSuccess: () => {
           setOpen(false);
           form.reset();
-          toast.success("Tenant added successfully!");
+          toast.success("Organization added successfully!");
         },
         onError: (error) => {
           // Error is already handled by react-hot-toast in onError,
           // but we can add additional UI feedback here
-          console.error("Te submission error:", error);
+          console.error("Organization submission error:", error);
 
-          toast.error("Failed to add tenant. Please try again.");
+          toast.error("Failed to add organization. Please try again.");
           if (error instanceof Error) {
             toast.error(error.message);
           }
@@ -188,7 +188,9 @@ const AddTenant = ({ type }: { type: "switcher" | "button" | "empty" }) => {
                 type="submit"
                 className="mt-6 w-full"
               >
-                {addTenantMutation.isPending ? "Submitting..." : "Add Tenant"}
+                {addTenantMutation.isPending
+                  ? "Submitting..."
+                  : "Add Organization"}
               </Button>
             </form>
           </SheetHeader>
