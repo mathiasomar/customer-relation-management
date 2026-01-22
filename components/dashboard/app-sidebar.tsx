@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Activity,
   BarChart,
   Building,
   Calendar,
@@ -9,6 +10,7 @@ import {
   Lightbulb,
   LineChart,
   Logs,
+  Mail,
   Package,
   Settings,
   Target,
@@ -72,6 +74,16 @@ const items = [
     title: "Calendar",
     url: "/dashboard/calendar",
     icon: Calendar,
+  },
+  {
+    title: "Email",
+    url: "/dashboard/emails",
+    icon: Mail,
+  },
+  {
+    title: "Activity",
+    url: "/dashboard/activities",
+    icon: Activity,
   },
   {
     title: "Reports",
