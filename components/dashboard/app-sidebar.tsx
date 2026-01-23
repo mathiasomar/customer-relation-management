@@ -15,6 +15,7 @@ import {
   Settings,
   Target,
   User2,
+  Users2,
 } from "lucide-react";
 import {
   Sidebar,
@@ -34,76 +35,116 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 
-const items = [
+const sidebarGroupItems = [
   {
-    title: "Home",
-    url: "/dashboard",
-    icon: Home,
+    title: "Main",
+    items: [
+      {
+        title: "Home",
+        url: "/dashboard",
+        icon: Home,
+      },
+      {
+        title: "Users",
+        url: "/dashboard/users",
+        icon: User2,
+      },
+    ],
   },
   {
-    title: "Users",
-    url: "/dashboard/users",
-    icon: User2,
+    title: "Tenant",
+    items: [
+      {
+        title: "Organizations",
+        url: "/dashboard/organizations",
+        icon: Building,
+      },
+      {
+        title: "Team Members",
+        url: "/dashboard/organizations/members",
+        icon: Users2,
+      },
+    ],
   },
   {
-    title: "Organizations",
-    url: "/dashboard/organizations",
-    icon: Building,
+    title: "Core",
+    items: [
+      {
+        title: "Contacts",
+        url: "/dashboard/contacts",
+        icon: Contact2,
+      },
+      {
+        title: "Lead",
+        url: "/dashboard/deals",
+        icon: Target,
+      },
+      {
+        title: "Opportunities",
+        url: "/dashboard/opportunities",
+        icon: Lightbulb,
+      },
+      {
+        title: "Product",
+        url: "/dashboard/products",
+        icon: Package,
+      },
+    ],
   },
   {
-    title: "Contacts",
-    url: "/dashboard/contacts",
-    icon: Contact2,
+    title: "Management",
+    items: [
+      {
+        title: "Activity",
+        url: "/dashboard/activity",
+        icon: Activity,
+      },
+    ],
   },
   {
-    title: "Lead",
-    url: "/dashboard/deals",
-    icon: Target,
+    title: "Communication",
+    items: [
+      {
+        title: "Email",
+        url: "/dashboard/emails",
+        icon: Mail,
+      },
+    ],
   },
   {
-    title: "Opportunities",
-    url: "/dashboard/opportunities",
-    icon: Lightbulb,
+    title: "Insights",
+    items: [
+      {
+        title: "Calendar",
+        url: "/dashboard/calendar",
+        icon: Calendar,
+      },
+      {
+        title: "Reports",
+        url: "/dashboard/reports",
+        icon: BarChart,
+      },
+      {
+        title: "Analytics",
+        url: "/dashboard/analytics",
+        icon: LineChart,
+      },
+    ],
   },
   {
-    title: "Product",
-    url: "/dashboard/products",
-    icon: Package,
-  },
-  {
-    title: "Calendar",
-    url: "/dashboard/calendar",
-    icon: Calendar,
-  },
-  {
-    title: "Email",
-    url: "/dashboard/emails",
-    icon: Mail,
-  },
-  {
-    title: "Activity",
-    url: "/dashboard/activities",
-    icon: Activity,
-  },
-  {
-    title: "Reports",
-    url: "/dashboard/reports",
-    icon: BarChart,
-  },
-  {
-    title: "Analytics",
-    url: "/dashboard/analytics",
-    icon: LineChart,
-  },
-  {
-    title: "Logs",
-    url: "/dashboard/logs",
-    icon: Logs,
-  },
-  {
-    title: "Settings",
-    url: "/dashboard/settings",
-    icon: Settings,
+    title: "Application",
+    items: [
+      {
+        title: "Logs",
+        url: "/dashboard/logs",
+        icon: Logs,
+      },
+      {
+        title: "Settings",
+        url: "/dashboard/settings",
+        icon: Settings,
+      },
+    ],
   },
 ];
 
@@ -112,16 +153,18 @@ const AppSidebar = () => {
 
   const { data: session } = authClient.useSession();
 
-  // Filter items based on user role
-  const filteredItems = items.filter((item) => {
-    // Hide Users menu for non-admin/manager users
-    if (item.title === "Users") {
-      return (
-        session?.user?.role === "ADMIN" || session?.user?.role === "MANAGER"
-      );
-    }
-    return true;
-  });
+  const filteredGroupItems = sidebarGroupItems.map((group) => ({
+    ...group,
+    items: group.items.filter((item) => {
+      // Hide Users menu for non-admin/manager users
+      if (item.title === "Users") {
+        return (
+          session?.user?.role === "ADMIN" || session?.user?.role === "MANAGER"
+        );
+      }
+      return true;
+    }),
+  }));
 
   return (
     <Sidebar collapsible="icon">
@@ -139,35 +182,37 @@ const AppSidebar = () => {
       </SidebarHeader>
       <SidebarSeparator />
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Application</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {filteredItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    tooltip={item.title}
-                    asChild
-                    isActive={
-                      pathname === item.url ||
-                      (item.url !== "/dashboard" &&
-                        pathname.startsWith(item.url))
-                    }
-                    className="text-xs"
-                  >
-                    <Link href={item.url}>
-                      <item.icon className="w-4 h-4" />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                  {item.title === "Inbox" && (
-                    <SidebarMenuBadge>24</SidebarMenuBadge>
-                  )}
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {filteredGroupItems.map((group) => (
+          <SidebarGroup key={group.title}>
+            <SidebarGroupLabel>{group.title}</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {group.items.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton
+                      tooltip={item.title}
+                      asChild
+                      isActive={
+                        pathname === item.url ||
+                        (item.url !== "/dashboard" &&
+                          pathname.startsWith(item.url))
+                      }
+                      className="text-xs"
+                    >
+                      <Link href={item.url}>
+                        <item.icon className="w-4 h-4" />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                    {item.title === "Inbox" && (
+                      <SidebarMenuBadge>24</SidebarMenuBadge>
+                    )}
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ))}
       </SidebarContent>
     </Sidebar>
   );
