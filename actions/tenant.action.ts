@@ -844,7 +844,7 @@ export async function removeMember(memberId: string) {
       }
     }
 
-    await prisma.tenantMember.delete({
+    const deletedMember = await prisma.tenantMember.delete({
       where: { id: memberId, tenantId },
     });
 
@@ -859,11 +859,13 @@ export async function removeMember(memberId: string) {
       },
     });
 
-    revalidatePath("/settings/team");
+    revalidatePath("/dashboard/settings");
+    revalidatePath("/dashboard/members");
 
     return {
       success: true,
       message: "Member removed successfully",
+      deletedMember,
     };
   } catch (error) {
     console.error("Error removing member:", error);

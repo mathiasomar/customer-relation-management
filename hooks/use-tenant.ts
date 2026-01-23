@@ -186,7 +186,11 @@ export const useRemoveMember = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: removeMember,
+    mutationFn: async (memberId: string) => {
+      const result = await removeMember(memberId);
+      if (!result.success) throw new Error(result.error);
+      return result;
+    },
     onSuccess: (data) => {
       if (data.success) {
         queryClient.invalidateQueries({ queryKey: ["tenant-members"] });

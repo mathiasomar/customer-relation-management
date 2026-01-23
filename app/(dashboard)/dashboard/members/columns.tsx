@@ -2,15 +2,13 @@
 
 // import { cn } from "@/lib/utils";
 import { ColumnDef } from "@tanstack/react-table";
-import { Trash2 } from "lucide-react";
-
-import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DataTableColumnHeader } from "@/components/dashboard/data-table-column-header";
 import { Member } from "@/types/member";
 import { authClient } from "@/lib/auth-client";
 import EditMemberRole from "@/components/dashboard/edit-member-role";
 import ViewMemberPermission from "@/components/dashboard/view-member-permission";
+import DeleteMember from "@/components/dashboard/delete-member";
 
 export const columns: ColumnDef<Member>[] = [
   {
@@ -88,13 +86,7 @@ export const columns: ColumnDef<Member>[] = [
       return (
         <div className="flex items-center gap-2">
           <EditMemberRole member={member} />
-          <Button
-            disabled={member.role === "ADMIN"}
-            variant={"outline"}
-            size={"icon-sm"}
-          >
-            <Trash2 className="w-2 h-2 text-red-400" />
-          </Button>
+          <DeleteMember member={member} />
           <ViewMemberPermission member={member} />
         </div>
       );
