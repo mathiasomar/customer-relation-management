@@ -14,7 +14,7 @@ import {
   updateSubscription,
   updateTenant,
 } from "@/actions/tenant.action";
-import { TenantMemberRole, UserRole } from "@/generated/prisma/enums";
+import { TenantMemberRole } from "@/generated/prisma/enums";
 import { TenantPermissions } from "@/types/tenant";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -170,7 +170,7 @@ export const useUpdateMemberRole = () => {
       ...data
     }: {
       memberId: string;
-      role: UserRole;
+      role: TenantMemberRole;
       permissions?: TenantPermissions;
     }) => updateMemberRole(memberId, data),
     onSuccess: (data) => {

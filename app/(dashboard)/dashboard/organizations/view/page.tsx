@@ -164,9 +164,11 @@ const TenantPage = () => {
             <span
               className={cn(
                 "px-2 py-1 rounded-sm text-xs font-medium",
-                data?.userRole === "ADMIN" || data?.userRole === "MANAGER"
+                data?.userRole === "ADMIN"
                   ? "bg-red-100 text-red-800"
-                  : "bg-blue-100 text-blue-800",
+                  : data?.userRole === "MANAGER"
+                    ? "bg-green-100 text-green-800"
+                    : "bg-blue-100 text-blue-800",
               )}
             >
               {data?.userRole

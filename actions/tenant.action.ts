@@ -9,7 +9,6 @@ import {
   BillingInterval,
   SubscriptionStatus,
   TenantMemberRole,
-  UserRole,
 } from "@/generated/prisma/enums";
 import { Prisma } from "@/generated/prisma/client";
 import { InputJsonValue } from "@prisma/client/runtime/client";
@@ -668,24 +667,13 @@ export const inviteMember = async (data: {
       };
     }
 
-    let perm = {};
-
-    if (data.role === "ADMIN" || data.role === "MANAGER") {
-      perm = {
-        canManageUsers: data.permissions?.canManageUsers ?? false,
-        canManageSettings: data.permissions?.canManageSettings ?? false,
-        canManageBilling: data.permissions?.canManageBilling ?? false,
-        canManageIntegrations: data.permissions?.canManageIntegrations ?? false,
-      };
-    }
-
     // Add user as member
     const member = await prisma.tenantMember.create({
       data: {
         userId: user.id,
         tenantId: tenantId ?? "",
         role: data.role as TenantMemberRole,
-        permissions: perm as InputJsonValue | undefined,
+        permissions: data.permissions as InputJsonValue | undefined,
         invitedBy: userId,
       },
     });
@@ -727,7 +715,7 @@ export const inviteMember = async (data: {
 export const updateMemberRole = async (
   memberId: string,
   data: {
-    role: UserRole;
+    role: TenantMemberRole;
     permissions?: TenantPermissions;
   },
 ) => {

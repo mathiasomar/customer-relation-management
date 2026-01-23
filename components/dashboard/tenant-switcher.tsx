@@ -129,9 +129,11 @@ const TenantSwitcher = () => {
           <span
             className={cn(
               "px-2 py-1 rounded-sm text-xs font-medium",
-              currentTenant.role === "ADMIN" || currentTenant.role === "MANAGER"
+              currentTenant.role === "ADMIN"
                 ? "bg-red-100 text-red-800"
-                : "bg-blue-100 text-blue-800",
+                : currentTenant.role === "MANAGER"
+                  ? "bg-green-100 text-green-800"
+                  : "bg-blue-100 text-blue-800",
             )}
           >
             {currentTenant.role
