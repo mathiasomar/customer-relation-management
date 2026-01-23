@@ -60,7 +60,7 @@ const TenantSwitcher = () => {
       : dataTenant?.error
         ? "No Access"
         : dataTenant?.tenant?.slug || "no-tenant",
-    role: tenantLoading ? "loading" : dataTenant?.userRole || "NO-ROLE",
+    role: tenantLoading ? "loading..." : dataTenant?.userRole || "NO-ROLE",
   };
 
   const handleTenantSwitch = async (tenantSlug: string) => {

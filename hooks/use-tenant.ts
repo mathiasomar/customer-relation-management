@@ -14,7 +14,7 @@ import {
   updateSubscription,
   updateTenant,
 } from "@/actions/tenant.action";
-import { UserRole } from "@/generated/prisma/enums";
+import { TenantMemberRole, UserRole } from "@/generated/prisma/enums";
 import { TenantPermissions } from "@/types/tenant";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -142,7 +142,7 @@ export const useInviteMember = () => {
   return useMutation({
     mutationFn: async (data: {
       email: string;
-      role: UserRole;
+      role: TenantMemberRole;
       permissions?: TenantPermissions;
     }) => {
       const result = await inviteMember(data);

@@ -98,7 +98,7 @@ const TenantPage = () => {
             <InviteMember />
           ) : null}
           <Button size={"sm"} asChild>
-            <Link href="/dashboard/organizations/members">
+            <Link href="/dashboard/members">
               <View className="w-4 h-4" />
               View Members
             </Link>

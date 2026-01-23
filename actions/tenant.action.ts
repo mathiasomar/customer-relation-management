@@ -518,8 +518,9 @@ export const updateTenant = async (
       },
     });
 
-    revalidatePath("/settings/organization");
-    revalidatePath("/dashboard");
+    revalidatePath("/dashboard/organizations");
+    revalidatePath("/dashboard/settings");
+    revalidatePath("/dashboard/organizations/view");
 
     return {
       success: true,
@@ -567,7 +568,7 @@ export const updateSubscription = async (data: {
       },
     });
 
-    revalidatePath("/settings/billing");
+    revalidatePath("/dashboard/settings/billing");
 
     return {
       success: true,

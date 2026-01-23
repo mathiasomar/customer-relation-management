@@ -61,7 +61,7 @@ const sidebarGroupItems = [
       },
       {
         title: "Team Members",
-        url: "/dashboard/organizations/members",
+        url: "/dashboard/members",
         icon: Users2,
       },
     ],
