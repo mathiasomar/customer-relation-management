@@ -14,7 +14,7 @@ import {
   updateSubscription,
   updateTenant,
 } from "@/actions/tenant.action";
-import { UserRole } from "@/generated/prisma/enums";
+import { TenantMemberRole } from "@/generated/prisma/enums";
 import { TenantPermissions } from "@/types/tenant";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -142,7 +142,7 @@ export const useInviteMember = () => {
   return useMutation({
     mutationFn: async (data: {
       email: string;
-      role: UserRole;
+      role: TenantMemberRole;
       permissions?: TenantPermissions;
     }) => {
       const result = await inviteMember(data);
@@ -170,7 +170,7 @@ export const useUpdateMemberRole = () => {
       ...data
     }: {
       memberId: string;
-      role: UserRole;
+      role: TenantMemberRole;
       permissions?: TenantPermissions;
     }) => updateMemberRole(memberId, data),
     onSuccess: (data) => {
@@ -186,7 +186,11 @@ export const useRemoveMember = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: removeMember,
+    mutationFn: async (memberId: string) => {
+      const result = await removeMember(memberId);
+      if (!result.success) throw new Error(result.error);
+      return result;
+    },
     onSuccess: (data) => {
       if (data.success) {
         queryClient.invalidateQueries({ queryKey: ["tenant-members"] });

@@ -14,6 +14,12 @@ enum UserRole {
   MANAGER
   AGENT
   VIEWER
+  USER
+}
+
+enum TenantMemberRole {
+  ADMIN
+  MANAGER
   MEMBER
 }
 
@@ -119,7 +125,7 @@ model User {
   email         String
   emailVerified Boolean   @default(false)
   image         String?
-  role          UserRole  @default(MEMBER)
+  role          UserRole  @default(USER)
   banned        Boolean?  @default(false)
   banReason     String?
   banExpires    DateTime?
@@ -261,8 +267,8 @@ model TenantMember {
   user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
-  role      UserRole @default(MEMBER)
-  joinedAt  DateTime @default(now())
+  role      TenantMemberRole @default(MEMBER)
+  joinedAt  DateTime         @default(now())
   invitedBy String?
 
   // Custom permissions (JSON for flexibility)
@@ -827,7 +833,7 @@ model EmailTemplate {
   tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   createdById String
-  createdBy   User   @relation(fields: [createdById], references: [id])
+  createdBy   User   @relation(fields: [createdById], references: [id], onDelete: Cascade)
 
   // Metadata
   isActive  Boolean   @default(true)

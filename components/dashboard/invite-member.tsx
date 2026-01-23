@@ -22,7 +22,8 @@ import { Alert, AlertTitle } from "../ui/alert";
 import { useState } from "react";
 import { useInviteMember } from "@/hooks/use-tenant";
 import { toast } from "sonner";
-import { UserRole } from "@/generated/prisma/enums";
+import { TenantMemberRole } from "@/generated/prisma/enums";
+import { TenantPermissions } from "@/types/tenant";
 import {
   Select,
   SelectContent,
@@ -39,7 +40,7 @@ const formSchema = z.object({
       message: "Invalid email address!",
     })
     .min(1, { message: "Email is required!" }),
-  role: z.enum(["ADMIN", "MANAGER", "AGENT", "VIEWER", "MEMBER"]).optional(),
+  role: z.enum(["ADMIN", "MANAGER", "MEMBER"]).optional(),
   canManageUsers: z.boolean().optional(),
   canManageSettings: z.boolean().optional(),
   canManageBilling: z.boolean().optional(),
@@ -62,9 +63,19 @@ const InviteMember = () => {
   });
 
   const onSubmit: SubmitHandler<z.infer<typeof formSchema>> = async (data) => {
+    const permissions = {
+      canManageUsers: data.canManageUsers,
+      canManageSettings: data.canManageSettings,
+      canManageBilling: data.canManageBilling,
+      canManageIntegrations: data.canManageIntegrations,
+    };
     try {
       inviteMemberMutation.mutateAsync(
-        { email: data.email, role: data.role as UserRole },
+        {
+          email: data.email,
+          role: data.role as TenantMemberRole,
+          permissions: permissions as TenantPermissions,
+        },
         {
           onSuccess: () => {
             setOpen(false);
@@ -147,8 +158,6 @@ const InviteMember = () => {
 
                         <SelectContent>
                           <SelectItem value="MEMBER">Member</SelectItem>
-                          <SelectItem value="VIEWER">Viewer</SelectItem>
-                          <SelectItem value="AGENT">Agent</SelectItem>
                           <SelectItem value="MANAGER">Manager</SelectItem>
                           <SelectItem value="ADMIN">Admin</SelectItem>
                         </SelectContent>

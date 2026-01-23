@@ -8,7 +8,7 @@ import { prisma } from "@/lib/prisma";
 import {
   BillingInterval,
   SubscriptionStatus,
-  UserRole,
+  TenantMemberRole,
 } from "@/generated/prisma/enums";
 import { Prisma } from "@/generated/prisma/client";
 import { InputJsonValue } from "@prisma/client/runtime/client";
@@ -517,8 +517,9 @@ export const updateTenant = async (
       },
     });
 
-    revalidatePath("/settings/organization");
-    revalidatePath("/dashboard");
+    revalidatePath("/dashboard/organizations");
+    revalidatePath("/dashboard/settings");
+    revalidatePath("/dashboard/organizations/view");
 
     return {
       success: true,
@@ -566,7 +567,7 @@ export const updateSubscription = async (data: {
       },
     });
 
-    revalidatePath("/settings/billing");
+    revalidatePath("/dashboard/settings/billing");
 
     return {
       success: true,
@@ -614,7 +615,7 @@ export const getTenantMembers = async () => {
 // CREATE: Invite new member to tenant
 export const inviteMember = async (data: {
   email: string;
-  role: UserRole;
+  role: TenantMemberRole;
   permissions?: TenantPermissions;
 }) => {
   try {
@@ -644,7 +645,7 @@ export const inviteMember = async (data: {
           email: data.email,
           name: data.email.split("@")[0], // Default name from email
           emailVerified: false,
-          role: "MEMBER", // Default role until they accept invitation
+          role: "USER", // Default role until they accept invitation
         },
       });
     }
@@ -666,24 +667,13 @@ export const inviteMember = async (data: {
       };
     }
 
-    let perm = {};
-
-    if (data.role === "ADMIN" || data.role === "MANAGER") {
-      perm = {
-        canManageUsers: data.permissions?.canManageUsers ?? false,
-        canManageSettings: data.permissions?.canManageSettings ?? false,
-        canManageBilling: data.permissions?.canManageBilling ?? false,
-        canManageIntegrations: data.permissions?.canManageIntegrations ?? false,
-      };
-    }
-
     // Add user as member
     const member = await prisma.tenantMember.create({
       data: {
         userId: user.id,
         tenantId: tenantId ?? "",
-        role: data.role as UserRole,
-        permissions: perm as InputJsonValue | undefined,
+        role: data.role as TenantMemberRole,
+        permissions: data.permissions as InputJsonValue | undefined,
         invitedBy: userId,
       },
     });
@@ -725,7 +715,7 @@ export const inviteMember = async (data: {
 export const updateMemberRole = async (
   memberId: string,
   data: {
-    role: UserRole;
+    role: TenantMemberRole;
     permissions?: TenantPermissions;
   },
 ) => {
@@ -772,7 +762,7 @@ export const updateMemberRole = async (
     const updatedMember = await prisma.tenantMember.update({
       where: { id: memberId, tenantId },
       data: {
-        role: data.role as UserRole,
+        role: data.role as TenantMemberRole,
         permissions: data.permissions,
       },
     });
@@ -854,7 +844,7 @@ export async function removeMember(memberId: string) {
       }
     }
 
-    await prisma.tenantMember.delete({
+    const deletedMember = await prisma.tenantMember.delete({
       where: { id: memberId, tenantId },
     });
 
@@ -869,11 +859,13 @@ export async function removeMember(memberId: string) {
       },
     });
 
-    revalidatePath("/settings/team");
+    revalidatePath("/dashboard/settings");
+    revalidatePath("/dashboard/members");
 
     return {
       success: true,
       message: "Member removed successfully",
+      deletedMember,
     };
   } catch (error) {
     console.error("Error removing member:", error);
