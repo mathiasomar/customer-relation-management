@@ -14,6 +14,7 @@ import {
   updateMemberRole,
   updateSubscription,
   updateTenant,
+  uploadLogo,
 } from "@/actions/tenant.action";
 import { TenantMemberRole } from "@/generated/prisma/enums";
 import { TenantPermissions } from "@/types/tenant";
@@ -97,6 +98,28 @@ export const useCreateTenant = () => {
       queryClient.invalidateQueries({ queryKey: ["admin-tenants"] });
       queryClient.invalidateQueries({ queryKey: ["tenant-members"] });
       queryClient.invalidateQueries({ queryKey: ["tenant-usage"] });
+      queryClient.invalidateQueries({ queryKey: ["session"] });
+    },
+    onError: (error) => {
+      console.error("Failed to create tenant:", error);
+    },
+  });
+};
+
+export const useUploadImage = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (img: string) => {
+      const result = await uploadLogo(img);
+      if (!result.success) throw new Error(result.error);
+      return result;
+    },
+    onSuccess: () => {
+      // Invalidate all tenant-related queries to refresh data
+      queryClient.invalidateQueries({ queryKey: ["tenant"] });
+      queryClient.invalidateQueries({ queryKey: ["tenants"] });
+      queryClient.invalidateQueries({ queryKey: ["all-tenants"] });
       queryClient.invalidateQueries({ queryKey: ["session"] });
     },
     onError: (error) => {

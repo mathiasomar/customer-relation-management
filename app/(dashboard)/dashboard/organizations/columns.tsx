@@ -64,7 +64,13 @@ export const columns: ColumnDef<Tenant>[] = [
       return (
         <>
           {tenant.logo ? (
-            <Image src={tenant.logo} alt="Logo" width={20} height={20} />
+            <Image
+              src={tenant.logo}
+              alt="Logo"
+              width={60}
+              height={60}
+              className="p-1 border"
+            />
           ) : (
             <p className="w-max px-1 bg-orange-500 text-white text-xs rounded-full">
               No Logo
