@@ -2,6 +2,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { randomUUID } from "crypto";
 import { z } from "zod";
 import slugify from "slugify";
 import { prisma } from "@/lib/prisma";
@@ -641,7 +642,7 @@ export const inviteMember = async (data: {
     if (!user) {
       user = await prisma.user.create({
         data: {
-          id: "",
+          id: randomUUID(),
           email: data.email,
           name: data.email.split("@")[0], // Default name from email
           emailVerified: false,
