@@ -2,6 +2,7 @@
 
 import { Prisma } from "@/generated/prisma/client";
 import { auth } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/permisions/tenant";
 import { prisma } from "@/lib/prisma";
 import { UserFilters } from "@/types/user";
 import { headers } from "next/headers";
@@ -60,5 +61,31 @@ export const getUsers = async (filters: UserFilters = {}) => {
         message: "Failed to fetch users",
       },
     };
+  }
+};
+
+export const checkEmail = async (email: string) => {
+  const session = getCurrentUser();
+
+  if (!session) {
+    return {
+      success: false,
+      error: "Unauthorized",
+    };
+  }
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (!user) {
+      return { success: false, error: "Email not found" };
+    }
+
+    return { success: true, user };
+  } catch (error) {
+    console.log(error);
+    return { success: false, error: "Failed to check email" };
   }
 };

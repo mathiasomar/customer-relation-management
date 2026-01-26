@@ -173,11 +173,17 @@ const SignupForm = () => {
       <Button disabled={loading} type="submit" className="mt-6 w-full">
         {loading ? "Signing up..." : "Sign Up"}
       </Button>
-      <div className="mt-4 flex items-center justify-end">
+      <div className="mt-4 flex flex-col items-end justify-center">
         <p className="text-sm">
           Already have an Account?{" "}
           <Link href="/sign-in" className="underline">
             Sign In
+          </Link>
+        </p>
+        <p className="text-sm">
+          Have you been invited and don&apos;t have a password?{" "}
+          <Link href="/add-password" className="underline">
+            Add Password
           </Link>
         </p>
       </div>
