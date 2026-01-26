@@ -18,7 +18,7 @@ const layout = async ({ children }: { children: React.ReactNode }) => {
 
   if (!session) redirect("/");
 
-  if (!session.session.tenantId) {
+  if (!session.session.tenantId && session.user.role !== "ADMIN") {
     return (
       <div className="bg-background w-full h-screen flex items-center justify-center">
         <div className="min-w-sm">
