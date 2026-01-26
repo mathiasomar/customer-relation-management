@@ -139,6 +139,59 @@ export const getAllUserTenants = async () => {
   }
 };
 
+// Get all tenants in the database (admin only)
+export const getAdminTenants = async () => {
+  const session = await getCurrentUser();
+
+  try {
+    // Check if user is admin
+    if (session.role !== "ADMIN") {
+      return {
+        success: false,
+        error: "Only administrators can view all tenants",
+      };
+    }
+
+    const tenantsFetch = await prisma.tenant.findMany({
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        logo: true,
+        subscriptionStatus: true,
+        plan: true,
+        trialEndsAt: true,
+        currentPeriodEnds: true,
+        createdAt: true,
+        isActive: true,
+        members: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    const tenants = tenantsFetch.map((tm) => ({
+      id: tm.id,
+      name: tm.name,
+      slug: tm.slug,
+      logo: tm.logo,
+      subscriptionStatus: tm.subscriptionStatus,
+      plan: tm.plan,
+      trialEndsAt: tm.trialEndsAt,
+      currentPeriodEnds: tm.currentPeriodEnds,
+      createdAt: tm.createdAt,
+      isActive: tm.isActive,
+      memberCount: tm.members.length,
+    }));
+
+    return { success: true, tenants };
+  } catch (error) {
+    console.error("Error fetching all tenants:", error);
+    return { success: false, error: "Failed to load tenants" };
+  }
+};
+
 // Switch tenant context (for multi-tenant users)
 export async function switchTenant(newTenantId: string) {
   const session = await getCurrentUser();

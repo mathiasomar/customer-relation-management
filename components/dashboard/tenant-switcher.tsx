@@ -2,7 +2,12 @@
 
 import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
-import { useTenant, useTenants, useSwitchTenant } from "@/hooks/use-tenant";
+import {
+  useTenant,
+  useTenants,
+  useSwitchTenant,
+  useAdminTenants,
+} from "@/hooks/use-tenant";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,9 +32,13 @@ const TenantSwitcher = () => {
   const { data: sesssion } = authClient.useSession();
 
   const { data: dataTenants, isFetching: tenantsLoading } = useTenants();
+  const { data: dataAdmminTenants, isFetching: adminTenantsLoading } =
+    useAdminTenants();
   const { data: dataTenant, isFetching: tenantLoading } = useTenant();
   const { mutate: switchTenant, isPending: switchingTenant } =
     useSwitchTenant();
+
+  const { data: session, isPending } = authClient.useSession();
 
   // Prevent hydration mismatch by only rendering after mount
   useEffect(() => {
@@ -93,8 +102,24 @@ const TenantSwitcher = () => {
           <DropdownMenuSeparator />
 
           {/* List user's tenants */}
-          {tenantsLoading ? (
+          {tenantsLoading || isPending || adminTenantsLoading ? (
             <Skeleton className="w-50 h-5" />
+          ) : session?.user.role === "ADMIN" ? (
+            dataAdmminTenants?.map((tenant) => (
+              <DropdownMenuItem
+                key={tenant.id}
+                onClick={() => handleTenantSwitch(tenant.slug)}
+                disabled={switchingTenant}
+                className={tenant.slug === currentTenant.slug ? "bg-muted" : ""}
+              >
+                {tenant.name}
+                {switchingTenant && tenant.slug === currentTenant.slug && (
+                  <span className="ml-auto text-xs text-muted-foreground">
+                    Switching...
+                  </span>
+                )}
+              </DropdownMenuItem>
+            ))
           ) : (
             dataTenants?.map((tenant) => (
               <DropdownMenuItem

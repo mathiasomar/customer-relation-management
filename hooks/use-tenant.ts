@@ -2,6 +2,7 @@
 
 import {
   createTenant,
+  getAdminTenants,
   getAllUserTenants,
   getTenant,
   getTenantMembers,
@@ -54,6 +55,18 @@ export const useAllTenants = () => {
   });
 };
 
+export const useAdminTenants = () => {
+  return useQuery({
+    queryKey: ["admin-tenants"],
+    queryFn: async () => {
+      const result = await getAdminTenants();
+      if (!result.success) throw new Error(result.error);
+      return result.tenants;
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+};
+
 export const useTenants = () => {
   return useQuery({
     queryKey: ["tenants"],
@@ -81,6 +94,7 @@ export const useCreateTenant = () => {
       queryClient.invalidateQueries({ queryKey: ["tenant"] });
       queryClient.invalidateQueries({ queryKey: ["tenants"] });
       queryClient.invalidateQueries({ queryKey: ["all-tenants"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-tenants"] });
       queryClient.invalidateQueries({ queryKey: ["tenant-members"] });
       queryClient.invalidateQueries({ queryKey: ["tenant-usage"] });
       queryClient.invalidateQueries({ queryKey: ["session"] });
@@ -102,6 +116,8 @@ export const useUpdateTenant = () => {
         // Invalidate tenant queries
         queryClient.invalidateQueries({ queryKey: ["tenant"] });
         queryClient.invalidateQueries({ queryKey: ["tenant-usage"] });
+        queryClient.invalidateQueries({ queryKey: ["all-tenants"] });
+        queryClient.invalidateQueries({ queryKey: ["admin-tenants"] });
       }
     },
   });
