@@ -2,7 +2,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { randomUUID } from "crypto";
+// import { randomUUID } from "crypto";
 import { z } from "zod";
 import slugify from "slugify";
 import { prisma } from "@/lib/prisma";
@@ -687,21 +687,28 @@ export const inviteMember = async (data: {
     }
 
     // Check if user already exists
-    let user = await prisma.user.findUnique({
+    const user = await prisma.user.findUnique({
       where: { email: data.email },
     });
 
     // If user doesn't exist, create them (they'll set password later)
+    // if (!user) {
+    //   user = await prisma.user.create({
+    //     data: {
+    //       id: randomUUID(),
+    //       email: data.email,
+    //       name: data.email.split("@")[0], // Default name from email
+    //       emailVerified: false,
+    //       role: "USER", // Default role until they accept invitation
+    //     },
+    //   });
+    // }
+
     if (!user) {
-      user = await prisma.user.create({
-        data: {
-          id: randomUUID(),
-          email: data.email,
-          name: data.email.split("@")[0], // Default name from email
-          emailVerified: false,
-          role: "USER", // Default role until they accept invitation
-        },
-      });
+      return {
+        success: false,
+        error: "User not found. Create the account first.",
+      };
     }
 
     // Check if user is already a member

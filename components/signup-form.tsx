@@ -180,12 +180,12 @@ const SignupForm = () => {
             Sign In
           </Link>
         </p>
-        <p className="text-sm">
+        {/* <p className="text-sm">
           Have you been invited and don&apos;t have a password?{" "}
           <Link href="/add-password" className="underline">
             Add Password
           </Link>
-        </p>
+        </p> */}
       </div>
     </form>
   );

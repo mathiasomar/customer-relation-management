@@ -110,7 +110,7 @@ const InviteMember = () => {
       <SheetContent>
         <ScrollArea className="h-[85vh] md:h-screen">
           {inviteMemberMutation.isError && (
-            <div className="my-2">
+            <div className="my-2 p-4">
               <Alert variant={"destructive"}>
                 <AlertCircleIcon />
                 <AlertTitle>{inviteMemberMutation.error.message}</AlertTitle>
