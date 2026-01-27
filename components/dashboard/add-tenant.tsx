@@ -33,7 +33,14 @@ const formSchema = z.object({
       /^[a-z0-9-]+$/,
       "Slug can only contain lowercase letters, numbers, and hyphens",
     ),
-  website: z.string().url().optional().or(z.literal("")),
+  website: z
+    .string()
+    .regex(
+      /^(https?:\/\/)?[\w-]+(\.[\w-]+)+([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?$/,
+      { message: "Invalid website URL" },
+    )
+    .optional()
+    .or(z.literal("")),
   industry: z.string().optional(),
   timezone: z.string().default("UTC"),
   currency: z.string().default("USD"),

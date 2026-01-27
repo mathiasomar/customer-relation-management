@@ -12,6 +12,8 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tenant } from "@/generated/prisma/client";
 import { useTenant } from "@/hooks/use-tenant";
+import GeneralForm from "./general-form";
+import { DataGridSkeleton } from "@/components/dashboard/loaders/data-grid-skeleton";
 
 const SettingPage = () => {
   const { data, isFetching } = useTenant();
@@ -37,21 +39,29 @@ const SettingPage = () => {
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
-      <div className="mt-4">
-        <Card className="shadow-none rounded-md">
-          <CardHeader>
-            <CardTitle>General</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <div className="lg:col-span-1">
-                <LogoUpload tenant={data?.tenant as Tenant} />
+      {isFetching ? (
+        <div className="mt-4">
+          <DataGridSkeleton items={2} />
+        </div>
+      ) : (
+        <div className="mt-4">
+          <Card className="shadow-none rounded-md">
+            <CardHeader>
+              <CardTitle>General</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="lg:col-span-1">
+                  <LogoUpload tenant={data?.tenant as Tenant} />
+                </div>
+                <div className="lg:col-span-2">
+                  <GeneralForm tenant={data?.tenant as Tenant} />
+                </div>
               </div>
-              <div className="lg:col-span-2">Hello</div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 };
