@@ -995,3 +995,25 @@ export const getTenantUsage = async () => {
     };
   }
 };
+
+export const uploadLogo = async (img: string) => {
+  try {
+    const { tenantId } = await verifyTenantPermission();
+    const tenant = await prisma.tenant.findUnique({ where: { id: tenantId } });
+    if (!tenant) {
+      return { success: false, error: "Tenant not found" };
+    }
+    const updatedTenant = await prisma.tenant.update({
+      where: { id: tenantId },
+      data: { logo: img },
+    });
+
+    revalidatePath("/dashboard/settings");
+    revalidatePath("/dashboard/organizations");
+
+    return { success: true, tenant: updatedTenant };
+  } catch (error) {
+    console.error("Error uploading logo:", error);
+    return { success: false, error: "Failed to upload logo" };
+  }
+};

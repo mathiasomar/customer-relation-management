@@ -23,3 +23,14 @@ export type Tenant = {
   isActive: boolean;
   memberCount: number;
 };
+
+export type ControlProps = {
+  name: string;
+  slug: string;
+  timezone: string;
+  currency: string;
+  language: string;
+  website?: string | undefined;
+  industry?: string | undefined;
+  billingEmail?: string | undefined;
+};

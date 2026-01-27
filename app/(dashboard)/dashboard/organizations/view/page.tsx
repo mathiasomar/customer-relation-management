@@ -37,6 +37,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 
 const StatCard = ({
   icon,
@@ -177,6 +178,15 @@ const TenantPage = () => {
                 .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
                 .join(" ") || "No Role Assigned"}
             </span>
+          </div>
+
+          <div className="relative w-20 h-20 border rounded-md p-1">
+            <Image
+              src={data?.tenant?.logo ? data.tenant.logo : "/noimage.png"}
+              alt="logo"
+              fill
+              className="object-cover"
+            />
           </div>
 
           {/* Details */}
