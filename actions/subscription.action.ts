@@ -6,6 +6,7 @@ import {
   verifyTenantPermission,
 } from "@/lib/permisions/tenant";
 import { prisma } from "@/lib/prisma";
+import { revalidatePath } from "next/cache";
 
 export const getSubscriptions = async () => {
   const session = await getCurrentUser();
@@ -29,6 +30,35 @@ export const getSubscriptions = async () => {
     });
 
     return { success: true, subscriptions };
+  } catch (error) {
+    console.error("Error fetching subscriptions:", error);
+    return { success: false, error: "Failed to load subscriptions" };
+  }
+};
+
+export const getSubscription = async (id: string) => {
+  const session = await getCurrentUser();
+
+  if (session.role !== "ADMIN") {
+    return {
+      success: false,
+      error: "Only administrators can view all tenants subscriptions",
+    };
+  }
+
+  try {
+    const subscription = await prisma.subscription.findUnique({
+      where: { id: id as string },
+      include: {
+        tenantSubscriptions: {
+          include: {
+            tenant: true,
+          },
+        },
+      },
+    });
+
+    return { success: true, subscription };
   } catch (error) {
     console.error("Error fetching subscriptions:", error);
     return { success: false, error: "Failed to load subscriptions" };
@@ -68,6 +98,8 @@ export const createSubscription = async (
       return { success: false, error: "Failed to create subscription" };
     }
 
+    revalidatePath("/dashboard/subscriptions");
+
     return { success: true, subscription };
   } catch (error) {
     console.log("Failed to add subscription: ", error);
@@ -94,7 +126,7 @@ export const getTenantSubscription = async () => {
   }
 };
 
-export const getTenantsSubscriptions = async () => {
+export const getTenantsSubscription = async (id: string) => {
   const session = await getCurrentUser();
 
   if (!session) {
@@ -109,7 +141,15 @@ export const getTenantsSubscriptions = async () => {
   }
 
   try {
-    const tenantSubscriptions = await prisma.tenantSubscription.findMany();
+    const tenantSubscriptions = await prisma.tenantSubscription.findMany({
+      where: {
+        subscriptionId: id,
+      },
+      include: {
+        subscription: true,
+        tenant: true,
+      },
+    });
 
     if (!tenantSubscriptions) {
       return { success: false, error: "No subscription found for tenant" };
