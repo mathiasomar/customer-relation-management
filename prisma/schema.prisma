@@ -271,6 +271,8 @@ model Subscription {
   updatedAt           DateTime             @updatedAt
   tenantSubscriptions TenantSubscription[]
 
+  limits Json?
+
   @@map("subscriptions")
 }
 

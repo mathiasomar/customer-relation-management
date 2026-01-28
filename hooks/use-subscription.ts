@@ -109,3 +109,28 @@ export const useUpdateSubscription = () => {
     },
   });
 };
+
+// export const useCreateFeature = () => {
+//   const queryClient = useQueryClient();
+
+//   return useMutation({
+//     mutationFn: async (data: { feature: string; subscriptionId: string }) => {
+//       const result = await createFeature(data);
+//       if (!result.success) throw new Error(result.error);
+//       return result;
+//     },
+//     onSuccess: () => {
+//       // Invalidate all tenant-related queries to refresh data
+//       queryClient.invalidateQueries({ queryKey: ["subscriptions"] });
+//       queryClient.invalidateQueries({ queryKey: ["tenants"] });
+//       queryClient.invalidateQueries({ queryKey: ["all-tenants"] });
+//       queryClient.invalidateQueries({ queryKey: ["admin-tenants"] });
+//       queryClient.invalidateQueries({ queryKey: ["tenant-members"] });
+//       queryClient.invalidateQueries({ queryKey: ["tenant-usage"] });
+//       queryClient.invalidateQueries({ queryKey: ["session"] });
+//     },
+//     onError: (error) => {
+//       console.error("Failed to create feature:", error);
+//     },
+//   });
+// };

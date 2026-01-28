@@ -1,4 +1,3 @@
-import Search from "@/components/dashboard/search";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -7,8 +6,8 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import ViewDataTable from "./view-data-table";
-import AddTenant from "@/components/dashboard/add-tenant";
+import AddSubscription from "@/components/dashboard/add-subscription";
+import ViewSubscription from "@/components/dashboard/view-subscription";
 
 const SubscriptionPage = () => {
   return (
@@ -26,12 +25,9 @@ const SubscriptionPage = () => {
       </Breadcrumb>
       <div className="flex items-center justify-between mb-8 px-4 py-2 bg-secondary rounded-md">
         <h1 className="font-semiboldnn">Subscriptions</h1>
-        <AddTenant type="button" />
+        <AddSubscription />
       </div>
-      <div className="my-4">
-        <Search />
-      </div>
-      <ViewDataTable />
+      <ViewSubscription />
     </div>
   );
 };

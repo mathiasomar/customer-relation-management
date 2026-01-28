@@ -49,7 +49,11 @@ export const getSubscription = async (id: string) => {
   try {
     const subscription = await prisma.subscription.findUnique({
       where: { id: id as string },
-      include: {
+      select: {
+        plan: true,
+        description: true,
+        amount: true,
+        popular: true,
         tenantSubscriptions: {
           include: {
             tenant: true,
@@ -85,12 +89,18 @@ export const createSubscription = async (
   }
 
   try {
+    const normalizePlan = formData.plan
+      ?.trim()
+      .replace(/\s+/g, " ")
+      .replace(/[^a-zA-Z\s'-]/g, "")
+      .replace(/\b\w/g, (char) => char.toUpperCase());
     const subscription = await prisma.subscription.create({
       data: {
-        plan: formData.plan || "starter",
+        plan: normalizePlan || "starter",
         description: formData.description ?? "",
         amount: formData.amount || 0,
         popular: formData.popular || false,
+        limits: formData.limits,
       },
     });
 
@@ -187,3 +197,28 @@ export const updateSubscription = async (
     return { success: false, error: "Failed to update subscription" };
   }
 };
+
+// export const createFeature = async (data: {
+//   feature: string;
+//   subscriptionId: string;
+// }) => {
+//   const session = await getCurrentUser();
+
+//   if (session.role !== "ADMIN") {
+//     return {
+//       success: false,
+//       error: "Only administrators can update subscription",
+//     };
+//   }
+
+//   try {
+//     const feature = await prisma.subscriptionFeatures.create({
+//       data,
+//     });
+
+//     return { success: true, feature };
+//   } catch (error) {
+//     console.log(error);
+//     return { success: false, error: "Failed to update subscription" };
+//   }
+// };
