@@ -53,7 +53,6 @@ export const verifyTenantPermission = async (
           id: true,
           isActive: true,
           deletedAt: true,
-          subscriptionStatus: true,
         },
       },
     },
@@ -81,8 +80,14 @@ export const verifyTenantPermission = async (
     };
   }
 
+  const tenantSubscription = await prisma.tenantSubscription.findUnique({
+    where: {
+      tenantId: tenantId as string,
+    },
+  });
+
   // Check subscription status for certain features
-  if (tenantMember.tenant.subscriptionStatus === "SUSPENDED") {
+  if (tenantSubscription?.subscriptionStatus === "SUSPENDED") {
     return {
       success: false,
       error: "Workspace subscription is suspended. Please contact support.",
@@ -186,8 +191,6 @@ export async function getUserTenants() {
           name: true,
           slug: true,
           logo: true,
-          subscriptionStatus: true,
-          plan: true,
         },
       },
     },
@@ -203,8 +206,6 @@ export async function getUserTenants() {
     logo: tm.tenant.logo,
     role: tm.role,
     joinedAt: tm.joinedAt,
-    subscriptionStatus: tm.tenant.subscriptionStatus,
-    plan: tm.tenant.plan,
   }));
 }
 
