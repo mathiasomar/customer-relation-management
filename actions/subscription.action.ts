@@ -21,9 +21,9 @@ export const getSubscriptions = async () => {
   try {
     const subscriptions = await prisma.subscription.findMany({
       include: {
-        tenantSubscriptions: {
-          include: {
-            tenant: true,
+        _count: {
+          select: {
+            tenantSubscriptions: true,
           },
         },
       },
