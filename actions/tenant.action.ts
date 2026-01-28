@@ -59,8 +59,17 @@ export const getUserTenantsMembmership = async () => {
             name: true,
             slug: true,
             logo: true,
-            subscriptionStatus: true,
-            plan: true,
+          },
+          include: {
+            tenantSubscription: {
+              include: {
+                subscription: {
+                  select: {
+                    plan: true,
+                  },
+                },
+              },
+            },
           },
         },
       },
@@ -76,8 +85,8 @@ export const getUserTenantsMembmership = async () => {
       logo: tm.tenant.logo,
       role: tm.role,
       joinedAt: tm.joinedAt,
-      subscriptionStatus: tm.tenant.subscriptionStatus,
-      plan: tm.tenant.plan,
+      subscriptionStatus: tm.tenant.tenantSubscription?.subscriptionStatus,
+      plan: tm.tenant.tenantSubscription?.subscription?.plan,
     }));
 
     return { success: true, tenants };
@@ -103,13 +112,20 @@ export const getAllUserTenants = async () => {
             name: true,
             slug: true,
             logo: true,
-            subscriptionStatus: true,
-            plan: true,
-            trialEndsAt: true,
-            currentPeriodEnds: true,
             createdAt: true,
             isActive: true,
             members: true,
+          },
+          include: {
+            tenantSubscription: {
+              include: {
+                subscription: {
+                  select: {
+                    plan: true,
+                  },
+                },
+              },
+            },
           },
         },
       },
@@ -123,10 +139,10 @@ export const getAllUserTenants = async () => {
       name: tm.tenant.name,
       slug: tm.tenant.slug,
       logo: tm.tenant.logo,
-      subscriptionStatus: tm.tenant.subscriptionStatus,
-      plan: tm.tenant.plan,
-      trialEndsAt: tm.tenant.trialEndsAt,
-      currentPeriodEnds: tm.tenant.currentPeriodEnds,
+      subscriptionStatus: tm.tenant.tenantSubscription?.subscriptionStatus,
+      plan: tm.tenant.tenantSubscription?.subscription?.plan,
+      trialEndsAt: tm.tenant.tenantSubscription?.trialEndsAt,
+      currentPeriodEnds: tm.tenant.tenantSubscription?.currentPeriodEnds,
       createdAt: tm.tenant.createdAt,
       isActive: tm.tenant.isActive,
       memberCount: tm.tenant.members.length,
@@ -158,13 +174,18 @@ export const getAdminTenants = async () => {
         name: true,
         slug: true,
         logo: true,
-        subscriptionStatus: true,
-        plan: true,
-        trialEndsAt: true,
-        currentPeriodEnds: true,
         createdAt: true,
         isActive: true,
         members: true,
+        tenantSubscription: {
+          include: {
+            subscription: {
+              select: {
+                plan: true,
+              },
+            },
+          },
+        },
       },
       orderBy: {
         createdAt: "desc",
@@ -176,10 +197,10 @@ export const getAdminTenants = async () => {
       name: tm.name,
       slug: tm.slug,
       logo: tm.logo,
-      subscriptionStatus: tm.subscriptionStatus,
-      plan: tm.plan,
-      trialEndsAt: tm.trialEndsAt,
-      currentPeriodEnds: tm.currentPeriodEnds,
+      subscriptionStatus: tm.tenantSubscription?.subscriptionStatus,
+      plan: tm.tenantSubscription?.subscription?.plan,
+      trialEndsAt: tm.tenantSubscription?.trialEndsAt,
+      currentPeriodEnds: tm.tenantSubscription?.currentPeriodEnds,
       createdAt: tm.createdAt,
       isActive: tm.isActive,
       memberCount: tm.members.length,
@@ -319,10 +340,15 @@ export const createTenant = async (
           timezone: validatedData.timezone,
           currency: validatedData.currency,
           language: validatedData.language,
+        },
+      });
+
+      await tx.tenantSubscription.create({
+        data: {
+          tenantId: tenant.id,
           subscriptionStatus: SubscriptionStatus.TRIAL,
           trialEndsAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14-day trial
           currentPeriodEnds: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
-          plan: "starter",
           billingInterval: BillingInterval.MONTHLY,
         },
       });
@@ -592,16 +618,16 @@ export const updateTenant = async (
 
 // UPDATE: Update subscription plan
 export const updateSubscription = async (data: {
-  plan: string;
+  subscriptionId: string;
   billingInterval: BillingInterval;
 }) => {
   try {
-    const { tenantId } = await verifyTenantPermission(["ADMIN"]);
+    const { tenantId } = await verifyTenantPermission(["ADMIN", "MANAGER"]);
 
-    const updatedTenant = await prisma.tenant.update({
+    const updatedTenant = await prisma.tenantSubscription.update({
       where: { id: tenantId },
       data: {
-        plan: data.plan,
+        subscriptionId: data.subscriptionId,
         billingInterval: data.billingInterval,
         subscriptionStatus: SubscriptionStatus.ACTIVE,
         currentPeriodEnds: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now

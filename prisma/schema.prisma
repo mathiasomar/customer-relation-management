@@ -216,7 +216,7 @@ model Tenant {
 
   // Subscription
   // plan               String?            @default("starter")
-  subscriptionId String?
+  // subscriptionId String?
   // billingEmail       String?
   // billingInterval    BillingInterval    @default(MONTHLY)
   // subscriptionStatus SubscriptionStatus @default(TRIAL)
@@ -235,25 +235,25 @@ model Tenant {
   deletedAt DateTime?
 
   // Relations
-  members             TenantMember[]
-  contacts            Contact[]
-  leads               Lead[]
-  opportunities       Opportunity[]
-  deals               Deal[]
-  activities          Activity[]
-  notes               Note[]
-  tasks               Task[]
-  pipelines           Pipeline[]
-  stages              Stage[]
-  tags                Tag[]
-  customFields        CustomField[]
-  emailTemplates      EmailTemplate[]
-  automations         Automation[]
-  webhooks            Webhook[]
-  integrations        Integration[]
-  auditLogs           AuditLog[]
-  sessions            Session[]
-  tenantSubscriptions TenantSubscription[]
+  members            TenantMember[]
+  contacts           Contact[]
+  leads              Lead[]
+  opportunities      Opportunity[]
+  deals              Deal[]
+  activities         Activity[]
+  notes              Note[]
+  tasks              Task[]
+  pipelines          Pipeline[]
+  stages             Stage[]
+  tags               Tag[]
+  customFields       CustomField[]
+  emailTemplates     EmailTemplate[]
+  automations        Automation[]
+  webhooks           Webhook[]
+  integrations       Integration[]
+  auditLogs          AuditLog[]
+  sessions           Session[]
+  tenantSubscription TenantSubscription?
 
   @@index([slug])
   @@index([isActive])
@@ -271,6 +271,8 @@ model Subscription {
   updatedAt           DateTime             @updatedAt
   tenantSubscriptions TenantSubscription[]
 
+  limits Json?
+
   @@map("subscriptions")
 }
 
@@ -282,10 +284,10 @@ model TenantSubscription {
   trialEndsAt        DateTime?
   currentPeriodEnds  DateTime?
 
-  tenantId       String
-  tenant         Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  subscriptionId String
-  subscription   Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  tenantId       String        @unique
+  tenant         Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  subscriptionId String?
+  subscription   Subscription? @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
