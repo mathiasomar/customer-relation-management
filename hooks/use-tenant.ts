@@ -187,15 +187,21 @@ export const useUpdateTenantSubscription = () => {
 };
 
 // Hook for updating subscription
-export const useUpdateSubscription = () => {
+export const useSelectTenantSubscription = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: updateSubscription,
+    mutationFn: async (data: { subscriptionId: string }) => {
+      const result = await updateSubscription(data);
+      if (!result.success) throw new Error(result.error);
+      return result;
+    },
     onSuccess: (data) => {
       if (data.success) {
         queryClient.invalidateQueries({ queryKey: ["tenant"] });
         queryClient.invalidateQueries({ queryKey: ["tenant-usage"] });
+        queryClient.invalidateQueries({ queryKey: ["subscriptions"] });
+        queryClient.invalidateQueries({ queryKey: ["tenant-subscription"] });
       }
     },
   });

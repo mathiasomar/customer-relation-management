@@ -65,13 +65,14 @@ const DeleteMember = ({ member }: { member: Member }) => {
               variant={"destructive"}
               disabled={deleteMemberMutation.isPending}
             >
-              <Trash2 className="mr-2 h-4 w-4" />
               {deleteMemberMutation.isPending ? (
                 <span className="flex items-center gap-2">
                   <Spinner className="w-4 h-4" /> Deleting...
                 </span>
               ) : (
-                "Delete"
+                <>
+                  <Trash2 className="h-4 w-4" /> Delete
+                </>
               )}
             </Button>
             <Button

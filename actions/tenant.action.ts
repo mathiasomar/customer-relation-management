@@ -729,12 +729,26 @@ export const updateSubscription = async (data: { subscriptionId: string }) => {
   try {
     const { tenantId } = await verifyTenantPermission(["ADMIN", "MANAGER"]);
 
+    const subscription = await prisma.subscription.findUnique({
+      where: { id: data.subscriptionId },
+    });
+
+    let currentPeriodEnds = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
+
+    if (subscription?.billingInterval === "ANNUAL") {
+      currentPeriodEnds = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+    } else if (subscription?.billingInterval === "MONTHLY") {
+      currentPeriodEnds = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+    } else if (subscription?.billingInterval === "QUARTERLY") {
+      currentPeriodEnds = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000);
+    }
+
     const updatedTenant = await prisma.tenantSubscription.update({
-      where: { id: tenantId },
+      where: { tenantId },
       data: {
         subscriptionId: data.subscriptionId,
         subscriptionStatus: SubscriptionStatus.ACTIVE,
-        currentPeriodEnds: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+        currentPeriodEnds,
         updatedAt: new Date(),
       },
     });
