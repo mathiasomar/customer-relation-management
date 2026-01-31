@@ -743,11 +743,18 @@ export const updateSubscription = async (data: { subscriptionId: string }) => {
       currentPeriodEnds = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000);
     }
 
+    let status;
+    if (subscription?.amount === 0) {
+      status = SubscriptionStatus.ACTIVE;
+    } else {
+      status = SubscriptionStatus.TRIAL;
+    }
+
     const updatedTenant = await prisma.tenantSubscription.update({
       where: { tenantId },
       data: {
         subscriptionId: data.subscriptionId,
-        subscriptionStatus: SubscriptionStatus.ACTIVE,
+        subscriptionStatus: status,
         currentPeriodEnds,
         updatedAt: new Date(),
       },

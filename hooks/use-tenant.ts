@@ -181,6 +181,7 @@ export const useUpdateTenantSubscription = () => {
         queryClient.invalidateQueries({ queryKey: ["tenant-usage"] });
         queryClient.invalidateQueries({ queryKey: ["all-tenants"] });
         queryClient.invalidateQueries({ queryKey: ["admin-tenants"] });
+        queryClient.invalidateQueries({ queryKey: ["tenant-subscription"] });
       }
     },
   });
