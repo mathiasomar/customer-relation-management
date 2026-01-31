@@ -14,6 +14,7 @@ import { Tenant } from "@/generated/prisma/client";
 import { useTenant } from "@/hooks/use-tenant";
 import GeneralForm from "./general-form";
 import { DataGridSkeleton } from "@/components/dashboard/loaders/data-grid-skeleton";
+import UpdateBillingEmail from "./update-billing-email";
 
 const SettingPage = () => {
   const { data, isFetching } = useTenant();
@@ -55,7 +56,25 @@ const SettingPage = () => {
                   <LogoUpload tenant={data?.tenant as Tenant} />
                 </div>
                 <div className="lg:col-span-2">
-                  <GeneralForm tenant={data?.tenant as Tenant} />
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-4">
+                      <div className="p-2 border flex items-center gap-2 rounded-lg">
+                        <span className="font-semibold text-sm text-gray-700">
+                          Billing Email:
+                        </span>
+                        <span className="font-semibold text-sm text-gray-700">
+                          {data?.tenant?.tenantSubscription?.billingEmail ??
+                            "No billing email"}
+                        </span>
+                      </div>
+                      <UpdateBillingEmail
+                        email={
+                          data?.tenant?.tenantSubscription?.billingEmail ?? ""
+                        }
+                      />
+                    </div>
+                    <GeneralForm tenant={data?.tenant as Tenant} />
+                  </div>
                 </div>
               </div>
             </CardContent>

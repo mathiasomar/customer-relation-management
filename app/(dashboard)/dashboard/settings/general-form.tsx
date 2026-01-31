@@ -39,12 +39,6 @@ const formSchema = z.object({
   timezone: z.string().default("UTC"),
   currency: z.string().default("USD"),
   language: z.string().default("en"),
-  billingEmail: z
-    .string()
-    .regex(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/, {
-      message: "Invalid email address!",
-    })
-    .optional(),
 });
 
 const GeneralForm = ({ tenant }: { tenant: Tenant }) => {
@@ -59,7 +53,6 @@ const GeneralForm = ({ tenant }: { tenant: Tenant }) => {
       timezone: tenant.timezone ?? "UTC",
       currency: tenant.currency ?? "USD",
       language: tenant.language ?? "en",
-      billingEmail: tenant.billingEmail ?? "",
     },
   });
 
@@ -153,25 +146,9 @@ const GeneralForm = ({ tenant }: { tenant: Tenant }) => {
             </Field>
           )}
         />
-        <Controller
-          name="billingEmail"
-          control={form.control}
-          render={({ field, fieldState }) => (
-            <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor="billingEmail">Billing Email</FieldLabel>
-              <Input
-                {...field}
-                id="billingEmail"
-                aria-invalid={fieldState.invalid}
-                autoComplete="off"
-              />
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-            </Field>
-          )}
-        />
         <AutoDetectLanguageSelect control={form.control} />
-        <TimezoneSelect defaultValue={tenant.timezone} control={form.control} />
         <CurrencySelect defaultValue={tenant.currency} control={form.control} />
+        <TimezoneSelect defaultValue={tenant.timezone} control={form.control} />
       </FieldGroup>
       <div className="flex justify-end mt-4">
         <Button disabled={updateTenantMutation.isPending} size={"sm"}>

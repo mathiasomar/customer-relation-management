@@ -35,6 +35,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
+import { cn } from "@/lib/utils";
 
 const sidebarGroupItems = [
   {
@@ -181,6 +182,16 @@ const AppSidebar = () => {
               <Link href="/dashboard">
                 <Image src={"/side.svg"} alt="logo" width={40} height={40} />
                 <span>O-CRM</span>
+                <span
+                  className={cn(
+                    "text-[9px] p-1 w-max rounded-full animate-pulse",
+                    session?.user.role === "ADMIN"
+                      ? "bg-green-100 text-green-800"
+                      : "bg-blue-100 text-blue-800",
+                  )}
+                >
+                  {session?.user.role.toLowerCase()}
+                </span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

@@ -6,11 +6,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import slugify from "slugify";
 import { prisma } from "@/lib/prisma";
-import {
-  BillingInterval,
-  SubscriptionStatus,
-  TenantMemberRole,
-} from "@/generated/prisma/enums";
+import { SubscriptionStatus, TenantMemberRole } from "@/generated/prisma/enums";
 import { Prisma } from "@/generated/prisma/client";
 import { InputJsonValue } from "@prisma/client/runtime/client";
 import { TenantPermissions } from "@/types/tenant";
@@ -59,8 +55,6 @@ export const getUserTenantsMembmership = async () => {
             name: true,
             slug: true,
             logo: true,
-          },
-          include: {
             tenantSubscription: {
               include: {
                 subscription: {
@@ -115,15 +109,9 @@ export const getAllUserTenants = async () => {
             createdAt: true,
             isActive: true,
             members: true,
-          },
-          include: {
             tenantSubscription: {
               include: {
-                subscription: {
-                  select: {
-                    plan: true,
-                  },
-                },
+                subscription: true,
               },
             },
           },
@@ -349,7 +337,6 @@ export const createTenant = async (
           subscriptionStatus: SubscriptionStatus.TRIAL,
           trialEndsAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14-day trial
           currentPeriodEnds: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
-          billingInterval: BillingInterval.MONTHLY,
         },
       });
 
@@ -532,6 +519,11 @@ export const getTenant = async () => {
             deals: true,
           },
         },
+        tenantSubscription: {
+          include: {
+            subscription: true,
+          },
+        },
       },
     });
 
@@ -560,7 +552,6 @@ export const updateTenant = async (
     timezone: string;
     currency: string;
     language: string;
-    billingEmail: string;
   }>,
 ) => {
   try {
@@ -570,7 +561,7 @@ export const updateTenant = async (
     ]);
 
     // Only admins can update billing email
-    if (data.billingEmail && userRole !== "ADMIN") {
+    if (userRole !== "ADMIN") {
       return {
         success: false,
         error: "Only administrators can update billing settings",
@@ -616,11 +607,125 @@ export const updateTenant = async (
   }
 };
 
-// UPDATE: Update subscription plan
-export const updateSubscription = async (data: {
+export const updateTenantBillingEmail = async (
+  data: Partial<{ billingEmail: string }>,
+) => {
+  try {
+    const { userRole, tenantId } = await verifyTenantPermission([
+      "ADMIN",
+      "MANAGER",
+    ]);
+
+    // Only admins can update billing email
+    if (userRole !== "ADMIN") {
+      return {
+        success: false,
+        error: "Only administrators can update billing settings",
+      };
+    }
+
+    const updatedTenantSubscription = await prisma.tenantSubscription.update({
+      where: { tenantId },
+      data: {
+        ...data,
+        updatedAt: new Date(),
+      },
+    });
+
+    // Create audit log
+    await prisma.auditLog.create({
+      data: {
+        action: "UPDATE",
+        entityType: "Tenant Subscription",
+        entityId: tenantId as string,
+        tenantId: tenantId ?? "",
+        userId: (await getCurrentUser()).id,
+        changes: data,
+      },
+    });
+
+    revalidatePath("/dashboard/organizations");
+    revalidatePath("/dashboard/settings");
+    revalidatePath("/dashboard/organizations/view");
+
+    return {
+      success: true,
+      tenant: updatedTenantSubscription,
+      message: "Workspace updated successfully",
+    };
+  } catch (error) {
+    console.error("Error updating tenant subscription:", error);
+    return {
+      success: false,
+      error:
+        error instanceof Error ? error.message : "Failed to update workspace",
+    };
+  }
+};
+
+// CREATE: Create subscription plan
+export const createTenantSubscription = async (data: {
   subscriptionId: string;
-  billingInterval: BillingInterval;
+  tenantId: string;
 }) => {
+  try {
+    const { tenantId } = await verifyTenantPermission(["ADMIN", "MANAGER"]);
+
+    const subscription = await prisma.subscription.findUnique({
+      where: { id: data.subscriptionId },
+    });
+
+    let currentPeriodEnds = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
+
+    if (subscription?.billingInterval === "ANNUAL") {
+      currentPeriodEnds = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+    } else if (subscription?.billingInterval === "MONTHLY") {
+      currentPeriodEnds = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+    } else if (subscription?.billingInterval === "QUARTERLY") {
+      currentPeriodEnds = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000);
+    }
+
+    const updatedTenant = await prisma.tenantSubscription.create({
+      data: {
+        tenantId: data.tenantId,
+        subscriptionId: data.subscriptionId,
+        subscriptionStatus: SubscriptionStatus.ACTIVE,
+        currentPeriodEnds,
+        updatedAt: new Date(),
+      },
+    });
+
+    // Create audit log
+    await prisma.auditLog.create({
+      data: {
+        action: "UPDATE",
+        entityType: "Tenant",
+        entityId: tenantId ?? "",
+        tenantId: tenantId ?? "",
+        userId: (await getCurrentUser()).id,
+        changes: data,
+      },
+    });
+
+    revalidatePath("/dashboard/subscriptions");
+    revalidatePath("/dashboard/organizations");
+
+    return {
+      success: true,
+      tenant: updatedTenant,
+      message: "Subscription updated successfully",
+    };
+  } catch (error) {
+    console.error("Error updating subscription:", error);
+    return {
+      success: false,
+      error: "Failed to update subscription",
+    };
+  }
+};
+
+// UPDATE: Update subscription plan
+export const updateSubscription = async (data: { subscriptionId: string }) => {
   try {
     const { tenantId } = await verifyTenantPermission(["ADMIN", "MANAGER"]);
 
@@ -628,7 +733,6 @@ export const updateSubscription = async (data: {
       where: { id: tenantId },
       data: {
         subscriptionId: data.subscriptionId,
-        billingInterval: data.billingInterval,
         subscriptionStatus: SubscriptionStatus.ACTIVE,
         currentPeriodEnds: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
         updatedAt: new Date(),
@@ -647,7 +751,8 @@ export const updateSubscription = async (data: {
       },
     });
 
-    revalidatePath("/dashboard/settings/billing");
+    revalidatePath("/dashboard/subscriptions");
+    revalidatePath("/dashboard/organization");
 
     return {
       success: true,

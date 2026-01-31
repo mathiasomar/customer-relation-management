@@ -6,7 +6,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useSubscriptions } from "@/hooks/use-subscription";
 import { authClient } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
-import { CheckCircle, Edit } from "lucide-react";
+import { AlertCircle, CheckCircle, Edit } from "lucide-react";
+import { Alert, AlertDescription } from "../ui/alert";
 
 const ViewSubscription = () => {
   const { data: subscriptions, isFetching } = useSubscriptions();
@@ -22,6 +23,11 @@ const ViewSubscription = () => {
     <div className="mt-4">
       {isFetching || isPending ? (
         <DataGridSkeleton columns={3} items={3} />
+      ) : serializedData?.length === 0 ? (
+        <Alert variant={"destructive"}>
+          <AlertCircle />
+          <AlertDescription>No Subscription</AlertDescription>
+        </Alert>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {serializedData?.map((subscription) => (
