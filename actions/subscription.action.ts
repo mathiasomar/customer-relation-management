@@ -37,9 +37,9 @@ export const getSubscriptions = async () => {
 };
 
 export const getSubscription = async (id: string) => {
-  const session = await getCurrentUser();
+  const { userRole } = await verifyTenantPermission(["ADMIN", "MANAGER"]);
 
-  if (session.role !== "ADMIN") {
+  if (userRole !== "ADMIN" && userRole !== "MANAGER") {
     return {
       success: false,
       error: "Only administrators can view all tenants subscriptions",

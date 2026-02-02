@@ -29,7 +29,7 @@ export const useSubscription = (id: string) => {
     queryFn: async () => {
       const result = await getSubscription(id);
       if (!result.success) throw new Error(result.error);
-      return result.subscription;
+      return result;
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
   });

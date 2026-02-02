@@ -62,8 +62,8 @@ const DeleteMember = ({ member }: { member: Member }) => {
           <div className="flex items-center justify-center gap-4 my-4">
             <Button
               onClick={handleDeleteMember}
-              variant={"destructive"}
               disabled={deleteMemberMutation.isPending}
+              className="bg-red-100 text-red-700 hover:bg-red-700 hover:text-red-100"
             >
               {deleteMemberMutation.isPending ? (
                 <span className="flex items-center gap-2">
