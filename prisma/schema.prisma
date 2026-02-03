@@ -101,10 +101,10 @@ enum DealStatus {
 
 enum PaymentStatus {
   PENDING
-  PAID
-  OVERDUE
-  PARTIALLY_PAID
-  REFUNDED
+  SUCCESS
+  FAILED
+  CANCELLED
+  EXPIRED
 }
 
 enum FieldType {
@@ -148,6 +148,7 @@ model User {
   auditLogs             AuditLog[]
   assignedActivities    Activity[]      @relation("ActivityAssignee")
   createdActivities     Activity[]      @relation("ActivityCreator")
+  payments              Payment[]
 
   @@unique([email])
   @@map("user")
@@ -261,25 +262,49 @@ model Tenant {
 }
 
 model Subscription {
-  id          String  @id @default(cuid())
-  plan        String? @default("starter")
-  description String?
-  amount      Int
-  popular     Boolean @default(false)
+  id              String          @id @default(cuid())
+  plan            String?         @default("starter")
+  description     String?
+  amount          Int
+  popular         Boolean         @default(false)
+  billingInterval BillingInterval @default(MONTHLY)
 
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
   tenantSubscriptions TenantSubscription[]
 
-  limits Json?
+  limits   Json?
+  payments Payment[]
 
   @@map("subscriptions")
+}
+
+model Payment {
+  id                 String        @id @default(cuid())
+  checkoutRequestID  String        @unique
+  merchantRequestID  String
+  phoneNumber        String
+  amount             Decimal
+  status             PaymentStatus @default(PENDING)
+  resultCode         Int
+  resultDesc         String
+  mpesaReceiptNumber String?
+  transactionDate    DateTime?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+  userId             String?
+  user               User?         @relation(fields: [userId], references: [id])
+  subscriptionId     String?
+  subscription       Subscription? @relation(fields: [subscriptionId], references: [id])
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([phoneNumber])
 }
 
 model TenantSubscription {
   id                 String             @id @default(cuid())
   billingEmail       String?
-  billingInterval    BillingInterval    @default(MONTHLY)
   subscriptionStatus SubscriptionStatus @default(TRIAL)
   trialEndsAt        DateTime?
   currentPeriodEnds  DateTime?

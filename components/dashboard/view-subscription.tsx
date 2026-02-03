@@ -3,13 +3,24 @@
 import { DataGridSkeleton } from "@/components/dashboard/loaders/data-grid-skeleton";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { useSubscriptions } from "@/hooks/use-subscription";
+import {
+  useSubscriptions,
+  useTenantSubscription,
+} from "@/hooks/use-subscription";
 import { authClient } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
-import { CheckCircle, Edit } from "lucide-react";
+import { AlertCircle, CheckCircle, Edit } from "lucide-react";
+import { Alert, AlertDescription } from "../ui/alert";
+import SelectSubscription from "./select-subscription";
+import { Subscription } from "@/generated/prisma/client";
+import { Badge } from "../ui/badge";
 
 const ViewSubscription = () => {
   const { data: subscriptions, isFetching } = useSubscriptions();
+  const {
+    data: tenantSubscriptionData,
+    isFetching: tenantSubscriptionFetching,
+  } = useTenantSubscription();
   const serializedData = isFetching
     ? []
     : subscriptions?.map((subcr) => ({
@@ -22,6 +33,11 @@ const ViewSubscription = () => {
     <div className="mt-4">
       {isFetching || isPending ? (
         <DataGridSkeleton columns={3} items={3} />
+      ) : serializedData?.length === 0 ? (
+        <Alert variant={"destructive"}>
+          <AlertCircle />
+          <AlertDescription>No Subscription</AlertDescription>
+        </Alert>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {serializedData?.map((subscription) => (
@@ -40,7 +56,19 @@ const ViewSubscription = () => {
                 )}
                 {/* Top */}
                 <div className="flex flex-col gap-4 items-center">
-                  <h1 className="font-bold">{subscription.plan}</h1>
+                  <h1 className="font-bold flex items-center gap-2">
+                    {subscription.plan}{" "}
+                    {tenantSubscriptionFetching ? (
+                      ""
+                    ) : tenantSubscriptionData?.subscriptionId ===
+                      subscription.id ? (
+                      <Badge variant={"secondary"}>
+                        {tenantSubscriptionData.subscriptionStatus}
+                      </Badge>
+                    ) : (
+                      ""
+                    )}
+                  </h1>
                   <div className="flex items-center justify-center gap-2">
                     <span className="text-[10px] text-muted-foreground">
                       KES
@@ -88,12 +116,9 @@ const ViewSubscription = () => {
                 </div>
                 {/* Actions */}
                 <div className="space-y-4">
-                  <Button
-                    variant={subscription.popular ? "default" : "outline"}
-                    className="w-full self-end"
-                  >
-                    Select
-                  </Button>
+                  <SelectSubscription
+                    subscription={subscription as Subscription}
+                  />
                   {session?.user.role === "ADMIN" && (
                     <div className="flex items-center gap-2 justify-center">
                       <Button variant={"secondary"}>

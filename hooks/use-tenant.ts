@@ -14,6 +14,7 @@ import {
   updateMemberRole,
   updateSubscription,
   updateTenant,
+  updateTenantBillingEmail,
   uploadLogo,
 } from "@/actions/tenant.action";
 import { TenantMemberRole } from "@/generated/prisma/enums";
@@ -133,7 +134,21 @@ export const useUpdateTenant = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: updateTenant,
+    mutationFn: async (
+      data: Partial<{
+        name: string;
+        website: string;
+        industry: string;
+        logo: string;
+        timezone: string;
+        currency: string;
+        language: string;
+      }>,
+    ) => {
+      const result = await updateTenant(data);
+      if (!result.success) throw new Error(result.error);
+      return result;
+    },
     onSuccess: (data) => {
       if (data.success) {
         // Invalidate tenant queries
@@ -146,16 +161,48 @@ export const useUpdateTenant = () => {
   });
 };
 
-// Hook for updating subscription
-export const useUpdateSubscription = () => {
+export const useUpdateTenantSubscription = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: updateSubscription,
+    mutationFn: async (
+      data: Partial<{
+        billingEmail: string;
+      }>,
+    ) => {
+      const result = await updateTenantBillingEmail(data);
+      if (!result.success) throw new Error(result.error);
+      return result;
+    },
+    onSuccess: (data) => {
+      if (data.success) {
+        // Invalidate tenant queries
+        queryClient.invalidateQueries({ queryKey: ["tenant"] });
+        queryClient.invalidateQueries({ queryKey: ["tenant-usage"] });
+        queryClient.invalidateQueries({ queryKey: ["all-tenants"] });
+        queryClient.invalidateQueries({ queryKey: ["admin-tenants"] });
+        queryClient.invalidateQueries({ queryKey: ["tenant-subscription"] });
+      }
+    },
+  });
+};
+
+// Hook for updating subscription
+export const useSelectTenantSubscription = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: { subscriptionId: string }) => {
+      const result = await updateSubscription(data);
+      if (!result.success) throw new Error(result.error);
+      return result;
+    },
     onSuccess: (data) => {
       if (data.success) {
         queryClient.invalidateQueries({ queryKey: ["tenant"] });
         queryClient.invalidateQueries({ queryKey: ["tenant-usage"] });
+        queryClient.invalidateQueries({ queryKey: ["subscriptions"] });
+        queryClient.invalidateQueries({ queryKey: ["tenant-subscription"] });
       }
     },
   });

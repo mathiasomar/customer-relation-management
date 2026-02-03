@@ -24,12 +24,20 @@ import { toast } from "sonner";
 import { useCreateSubscrciption } from "@/hooks/use-subscription";
 import { Textarea } from "../ui/textarea";
 import { Checkbox } from "../ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 
 const formSchema = z.object({
   plan: z.string().min(1, "Set a plan"),
   description: z.string().optional(),
   amount: z.coerce.number().min(0, "Amount must be at least 0").default(0),
   popular: z.boolean().default(false),
+  billingInterval: z.enum(["MONTHLY", "QUARTERLY", "ANNUAL"]),
   maxMembers: z.coerce
     .number()
     .min(0, "Max members must be at least 0")
@@ -56,6 +64,7 @@ const AddSubscription = () => {
       description: "",
       amount: 0,
       popular: false,
+      billingInterval: "MONTHLY",
       maxMembers: 0,
       maxContacts: 0,
       maxDeals: 0,
@@ -190,6 +199,35 @@ const AddSubscription = () => {
                           Is Popular
                         </label>
                       </span>
+                      {fieldState.invalid && (
+                        <FieldError errors={[fieldState.error]} />
+                      )}
+                    </Field>
+                  )}
+                />
+                <Controller
+                  name="billingInterval"
+                  control={form.control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid}>
+                      <FieldLabel htmlFor="billingInterval">
+                        Billing Interval
+                      </FieldLabel>
+                      <Select
+                        defaultValue={field.value}
+                        onValueChange={field.onChange}
+                      >
+                        <SelectTrigger>
+                          <SelectValue
+                            defaultValue={"Select Billing Interval"}
+                          />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="MONTHLY">Monthly</SelectItem>
+                          <SelectItem value="QUARTERLY">Quarterly</SelectItem>
+                          <SelectItem value="ANNUAL">Annual</SelectItem>
+                        </SelectContent>
+                      </Select>
                       {fieldState.invalid && (
                         <FieldError errors={[fieldState.error]} />
                       )}

@@ -9,14 +9,14 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 
 export const getSubscriptions = async () => {
-  const session = await getCurrentUser();
+  // const session = await getCurrentUser();
 
-  if (session.role !== "ADMIN") {
-    return {
-      success: false,
-      error: "Only administrators can view all tenants subscriptions",
-    };
-  }
+  // if (session.role !== "ADMIN") {
+  //   return {
+  //     success: false,
+  //     error: "Only administrators can view all tenants subscriptions",
+  //   };
+  // }
 
   try {
     const subscriptions = await prisma.subscription.findMany({
@@ -37,9 +37,9 @@ export const getSubscriptions = async () => {
 };
 
 export const getSubscription = async (id: string) => {
-  const session = await getCurrentUser();
+  const { userRole } = await verifyTenantPermission(["ADMIN", "MANAGER"]);
 
-  if (session.role !== "ADMIN") {
+  if (userRole !== "ADMIN" && userRole !== "MANAGER") {
     return {
       success: false,
       error: "Only administrators can view all tenants subscriptions",
@@ -100,6 +100,7 @@ export const createSubscription = async (
         description: formData.description ?? "",
         amount: formData.amount || 0,
         popular: formData.popular || false,
+        billingInterval: formData.billingInterval,
         limits: formData.limits,
       },
     });

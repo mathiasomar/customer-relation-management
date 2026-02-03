@@ -13,18 +13,30 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useTenant, useTenantUsage } from "@/hooks/use-tenant";
 import {
   ActivityIcon,
+  Banknote,
+  Calendar,
+  CalendarDays,
+  CheckCircle,
+  Clock,
   Contact2,
+  Factory,
+  Globe,
   Handshake,
+  Languages,
+  Layers,
   Lightbulb,
+  LinkIcon,
   Package2,
   Settings,
+  Tag,
   Target,
   TrendingUpDownIcon,
+  UserCircle,
   Users2,
   View,
+  X,
+  Zap,
 } from "lucide-react";
-import OrgDetails from "./details";
-import { Tenant } from "@/generated/prisma/client";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import InviteMember from "@/components/dashboard/invite-member";
@@ -38,6 +50,8 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
+import { differenceInDays, formatDistanceToNow } from "date-fns";
+import { Item, ItemContent, ItemMedia } from "@/components/ui/item";
 
 const StatCard = ({
   icon,
@@ -68,6 +82,15 @@ const StatCard = ({
 const TenantPage = () => {
   const { data, isFetching } = useTenant();
   const { data: tenantUsage, isFetching: isFetchingUsage } = useTenantUsage();
+
+  const getTrialDaysLeft = () => {
+    if (!data || isFetching) return null;
+    const today = new Date();
+    const trialEndsAt = new Date(
+      data.tenant?.tenantSubscription?.trialEndsAt ?? new Date(),
+    );
+    return differenceInDays(trialEndsAt, today);
+  };
   return (
     <div className="w-full">
       <div className="w-full flex flex-col gap-2 md:flex-row md:items-center md:justify-between mb-8">
@@ -191,7 +214,259 @@ const TenantPage = () => {
 
           {/* Details */}
           <div className="w-full mt-4">
-            <OrgDetails tenant={data?.tenant as Tenant} />
+            {/* <OrgDetails tenant={data?.tenant as Tenant} /> */}
+            <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              <div>
+                <h1 className="font-semibold text-sm lg:text-base lg:font-bold my-2">
+                  Details
+                </h1>
+                <Item variant={"default"} className="p-1">
+                  <ItemMedia variant={"icon"}>
+                    <UserCircle className="h-5 w-5" />
+                  </ItemMedia>
+                  <ItemContent>
+                    <span className="flex items-center gap-2">
+                      <span className="font-semibold text-xs">Name:</span>
+                      <span className="text-xs">{data?.tenant?.name}</span>
+                    </span>
+                  </ItemContent>
+                </Item>
+                <Item variant={"default"} className="p-1">
+                  <ItemMedia variant={"icon"}>
+                    <Tag className="h-5 w-5" />
+                  </ItemMedia>
+                  <ItemContent>
+                    <span className="flex items-center gap-2">
+                      <span className="font-semibold text-xs">Slug:</span>
+                      <span className="text-xs">{data?.tenant?.slug}</span>
+                    </span>
+                  </ItemContent>
+                </Item>
+                <Item variant={"default"} className="p-1">
+                  <ItemMedia variant={"icon"}>
+                    <LinkIcon className="h-5 w-5" />
+                  </ItemMedia>
+                  <ItemContent>
+                    <span className="flex items-center gap-2">
+                      <span className="font-semibold text-xs">Website:</span>
+                      <span className="text-xs">
+                        {data?.tenant?.website || "No website"}
+                      </span>
+                    </span>
+                  </ItemContent>
+                </Item>
+                <Item variant={"default"} className="p-1">
+                  <ItemMedia variant={"icon"}>
+                    <Factory className="h-5 w-5" />
+                  </ItemMedia>
+                  <ItemContent>
+                    <span className="flex items-center gap-2">
+                      <span className="font-semibold text-xs">Industry:</span>
+                      <span className="text-xs">
+                        {data?.tenant?.industry || "No industry specified"}
+                      </span>
+                    </span>
+                  </ItemContent>
+                </Item>
+              </div>
+              <div>
+                <h1 className="font-semibold text-sm lg:text-base lg:font-bold my-2">
+                  Subscription
+                </h1>
+                <Item variant={"default"} className="p-1">
+                  <ItemMedia variant={"icon"}>
+                    <Layers className="h-5 w-5" />
+                  </ItemMedia>
+                  <ItemContent>
+                    <span className="flex items-center gap-2">
+                      <span className="font-semibold text-xs">Plan:</span>
+                      <span className="text-xs">
+                        {data?.tenant?.tenantSubscription?.subscription?.plan}
+                      </span>
+                    </span>
+                  </ItemContent>
+                </Item>
+                <Item variant={"default"} className="p-1">
+                  <ItemMedia variant={"icon"}>
+                    <Calendar className="h-5 w-5" />
+                  </ItemMedia>
+                  <ItemContent>
+                    <span className="flex items-center gap-2">
+                      <span className="font-semibold text-xs">
+                        Billing Interval:
+                      </span>
+                      <span className="text-xs">
+                        {
+                          data?.tenant?.tenantSubscription?.subscription
+                            ?.billingInterval
+                        }
+                      </span>
+                    </span>
+                  </ItemContent>
+                </Item>
+                <Item variant={"default"} className="p-1">
+                  <ItemMedia variant={"icon"}>
+                    <Zap className="h-5 w-5" />
+                  </ItemMedia>
+                  <ItemContent>
+                    <span className="flex items-center gap-2">
+                      <span className="font-semibold text-xs">
+                        Subscription Status:
+                      </span>
+                      <span className="text-xs">
+                        {data?.tenant?.tenantSubscription?.subscriptionStatus}
+                      </span>
+                    </span>
+                  </ItemContent>
+                </Item>
+                <Item variant={"default"} className="p-1">
+                  <ItemMedia variant={"icon"}>
+                    <Clock className="h-5 w-5" />
+                  </ItemMedia>
+                  <ItemContent>
+                    <span className="flex items-center gap-2">
+                      <span className="font-semibold text-xs">
+                        Trial Ends In:
+                      </span>
+                      <span className="text-xs">
+                        {getTrialDaysLeft() !== null
+                          ? `${getTrialDaysLeft()} days left`
+                          : "No trial"}
+                      </span>
+                    </span>
+                  </ItemContent>
+                </Item>
+                <Item variant={"default"} className="p-1">
+                  <ItemMedia variant={"icon"}>
+                    <Clock className="h-5 w-5" />
+                  </ItemMedia>
+                  <ItemContent>
+                    <span className="flex items-center gap-2">
+                      <span className="font-semibold text-xs">
+                        Current Period Ends:
+                      </span>
+                      <span className="text-xs">
+                        {formatDistanceToNow(
+                          new Date(
+                            data?.tenant?.tenantSubscription
+                              ?.currentPeriodEnds || "",
+                          ),
+                          {
+                            addSuffix: true,
+                          },
+                        )}
+                      </span>
+                    </span>
+                  </ItemContent>
+                </Item>
+              </div>
+              <div>
+                <h1 className="font-semibold text-sm lg:text-base lg:font-bold my-2">
+                  Settings
+                </h1>
+                <Item variant={"default"} className="p-1">
+                  <ItemMedia variant={"icon"}>
+                    <Globe className="h-5 w-5" />
+                  </ItemMedia>
+                  <ItemContent>
+                    <span className="flex items-center gap-2">
+                      <span className="font-semibold text-xs">Timezone:</span>
+                      <span className="text-xs">
+                        {data?.tenant?.timezone || "No timezone specified"}
+                      </span>
+                    </span>
+                  </ItemContent>
+                </Item>
+                <Item variant={"default"} className="p-1">
+                  <ItemMedia variant={"icon"}>
+                    <Banknote className="h-5 w-5" />
+                  </ItemMedia>
+                  <ItemContent>
+                    <span className="flex items-center gap-2">
+                      <span className="font-semibold text-xs">Currency:</span>
+                      <span className="text-xs">
+                        {data?.tenant?.currency || "No currency specified"}
+                      </span>
+                    </span>
+                  </ItemContent>
+                </Item>
+                <Item variant={"default"} className="p-1">
+                  <ItemMedia variant={"icon"}>
+                    <Languages className="h-5 w-5" />
+                  </ItemMedia>
+                  <ItemContent>
+                    <span className="flex items-center gap-2">
+                      <span className="font-semibold text-xs">Language:</span>
+                      <span className="text-xs">
+                        {data?.tenant?.language || "No language specified"}
+                      </span>
+                    </span>
+                  </ItemContent>
+                </Item>
+              </div>
+              <div>
+                <h1 className="font-semibold text-sm lg:text-base lg:font-bold my-2">
+                  Metadata
+                </h1>
+                <Item variant={"default"} className="p-1">
+                  <ItemMedia variant={"icon"}>
+                    <CalendarDays className="h-5 w-5" />
+                  </ItemMedia>
+                  <ItemContent>
+                    <span className="flex items-center gap-2">
+                      <span className="font-semibold text-xs">Created At:</span>
+                      <span className="text-xs">
+                        {new Date(
+                          data?.tenant?.createdAt ?? new Date(),
+                        ).toLocaleDateString(undefined, {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                        })}
+                      </span>
+                    </span>
+                  </ItemContent>
+                </Item>
+                <Item variant={"default"} className="p-1">
+                  <ItemMedia variant={"icon"}>
+                    <CalendarDays className="h-5 w-5" />
+                  </ItemMedia>
+                  <ItemContent>
+                    <span className="flex items-center gap-2">
+                      <span className="font-semibold text-xs">
+                        Last Updated:
+                      </span>
+                      <span className="text-xs">
+                        {new Date(
+                          data?.tenant?.updatedAt ?? new Date(),
+                        ).toLocaleDateString(undefined, {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                        })}
+                      </span>
+                    </span>
+                  </ItemContent>
+                </Item>
+                <Item variant={"default"} className="p-1">
+                  <ItemMedia variant={"icon"}>
+                    {data?.tenant?.isActive ? (
+                      <CheckCircle className="h-5 w-5 text-green-500" />
+                    ) : (
+                      <X className="h-5 w-5 text-red-500" />
+                    )}
+                  </ItemMedia>
+                  <ItemContent>
+                    <span className="flex items-center gap-2">
+                      <span className="font-semibold text-xs">Is Active:</span>
+                      <span className="text-xs">
+                        {data?.tenant?.isActive ? "Yes" : "No"}
+                      </span>
+                    </span>
+                  </ItemContent>
+                </Item>
+              </div>
+            </div>
           </div>
 
           {/* Organization Usage */}
