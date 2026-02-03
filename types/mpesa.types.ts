@@ -63,7 +63,7 @@ export interface PaymentResult {
   PhoneNumber?: string;
 }
 
-export interface ApiResponse<T = unknown> {
+export interface ApiResponse<T = any> {
   success: boolean;
   data?: T;
   message?: string;
