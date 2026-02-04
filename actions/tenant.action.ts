@@ -16,6 +16,7 @@ import {
 } from "@/lib/permisions/tenant";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
+import { randomUUID } from "crypto";
 
 // Schema for tenant creation
 const createTenantSchema = z.object({
@@ -839,31 +840,31 @@ export const inviteMember = async (data: {
     }
 
     // Check if user already exists
-    const user = await prisma.user.findUnique({
+    let user = await prisma.user.findUnique({
       where: { email: data.email },
     });
 
     // If user doesn't exist, create them (they'll set password later)
-    // if (!user) {
-    //   user = await prisma.user.create({
-    //     data: {
-    //       id: randomUUID(),
-    //       email: data.email,
-    //       name: data.email.split("@")[0], // Default name from email
-    //       emailVerified: false,
-    //       role: "USER", // Default role until they accept invitation
-    //     },
-    //   });
-    // }
+    if (!user) {
+      user = await prisma.user.create({
+        data: {
+          id: randomUUID(),
+          email: data.email,
+          name: data.email.split("@")[0], // Default name from email
+          emailVerified: false,
+          role: "USER", // Default role until they accept invitation
+        },
+      });
+    }
 
     // do this later
 
-    if (!user) {
-      return {
-        success: false,
-        error: "User not found. Create the account first.",
-      };
-    }
+    // if (!user) {
+    //   return {
+    //     success: false,
+    //     error: "User not found. Create the account first.",
+    //   };
+    // }
 
     // Check if user is already a member
     const existingMember = await prisma.tenantMember.findUnique({
@@ -879,6 +880,24 @@ export const inviteMember = async (data: {
       return {
         success: false,
         error: "User is already a member of this workspace",
+      };
+    }
+
+    const subscription = await prisma.tenantSubscription.findUnique({
+      where: { tenantId: tenantId ?? "" },
+      include: { subscription: true },
+    });
+
+    const limits = subscription?.subscription?.limits as Record<string, number>;
+
+    const countMambers = await prisma.tenantMember.count({
+      where: { tenantId: tenantId ?? "" },
+    });
+
+    if (countMambers >= limits["maxMembers"]) {
+      return {
+        success: false,
+        error: "You have reached the maximum number of members",
       };
     }
 
