@@ -15,7 +15,7 @@ import { useState } from "react";
 import { Subscription } from "@/generated/prisma/client";
 import { useSelectTenantSubscription } from "@/hooks/use-tenant";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
+// import { useRouter } from "next/navigation";
 
 const SelectSubscription = ({
   subscription,
@@ -23,7 +23,7 @@ const SelectSubscription = ({
   subscription: Subscription;
 }) => {
   const [open, setOpen] = useState(false);
-  const router = useRouter();
+  // const router = useRouter();
 
   const updateSubscriptionMutation = useSelectTenantSubscription();
 
@@ -36,9 +36,9 @@ const SelectSubscription = ({
         onSuccess: () => {
           setOpen(false);
           toast.success("Subscription selected and active!");
-          if (subscription.amount > 0) {
-            router.push(`/dashboard/subscriptions/${subscription.id}/billing`);
-          }
+          // if (subscription.amount > 0) {
+          //   router.push(`/dashboard/subscriptions/${subscription.id}/billing`);
+          // }
         },
         onError: (error) => {
           // Error is already handled by react-hot-toast in onError,
