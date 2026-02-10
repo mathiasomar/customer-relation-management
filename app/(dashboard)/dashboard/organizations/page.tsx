@@ -9,10 +9,11 @@ import {
 } from "@/components/ui/breadcrumb";
 import ViewDataTable from "./view-data-table";
 import AddTenant from "@/components/dashboard/add-tenant";
+import CardsStat from "./cards-stat";
 
 const OrganizationPage = () => {
   return (
-    <div className="w-full">
+    <div className="w-full space-y-4">
       <Breadcrumb className="mb-8">
         <BreadcrumbList>
           <BreadcrumbItem>
@@ -24,11 +25,13 @@ const OrganizationPage = () => {
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
-      <div className="flex items-center justify-between mb-8 px-4 py-2 bg-secondary rounded-md">
+      <div className="flex items-center justify-between px-4 py-2 bg-secondary rounded-md">
         <h1 className="font-semiboldnn">Organizations</h1>
         <AddTenant type="button" />
       </div>
-      <div className="my-4">
+      {/* Stat Cards */}
+      <CardsStat />
+      <div>
         <Search />
       </div>
       <ViewDataTable />

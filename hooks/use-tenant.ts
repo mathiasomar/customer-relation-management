@@ -8,6 +8,7 @@ import {
   getTenantMembers,
   getTenantUsage,
   getUserTenantsMembmership,
+  getUserTenantsStats,
   inviteMember,
   removeMember,
   switchTenant,
@@ -100,6 +101,7 @@ export const useCreateTenant = () => {
       queryClient.invalidateQueries({ queryKey: ["tenant-members"] });
       queryClient.invalidateQueries({ queryKey: ["tenant-usage"] });
       queryClient.invalidateQueries({ queryKey: ["session"] });
+      queryClient.invalidateQueries({ queryKey: ["user-tenant-count"] });
     },
     onError: (error) => {
       console.error("Failed to create tenant:", error);
@@ -156,6 +158,7 @@ export const useUpdateTenant = () => {
         queryClient.invalidateQueries({ queryKey: ["tenant-usage"] });
         queryClient.invalidateQueries({ queryKey: ["all-tenants"] });
         queryClient.invalidateQueries({ queryKey: ["admin-tenants"] });
+        queryClient.invalidateQueries({ queryKey: ["user-tenant-count"] });
       }
     },
   });
@@ -182,6 +185,7 @@ export const useUpdateTenantSubscription = () => {
         queryClient.invalidateQueries({ queryKey: ["all-tenants"] });
         queryClient.invalidateQueries({ queryKey: ["admin-tenants"] });
         queryClient.invalidateQueries({ queryKey: ["tenant-subscription"] });
+        queryClient.invalidateQueries({ queryKey: ["user-tenant-count"] });
       }
     },
   });
@@ -221,6 +225,18 @@ export const useTenantMembers = () => {
   });
 };
 
+export const useUserTenantCount = () => {
+  return useQuery({
+    queryKey: ["user-tenant-count"],
+    queryFn: async () => {
+      const result = await getUserTenantsStats();
+      if (!result.success) throw new Error(result.error);
+      return result.stats;
+    },
+    staleTime: 2 * 60 * 1000, // 2 minutes
+  });
+};
+
 // Hook for inviting a new member
 export const useInviteMember = () => {
   const queryClient = useQueryClient();
@@ -241,6 +257,7 @@ export const useInviteMember = () => {
         queryClient.invalidateQueries({ queryKey: ["tenant-usage"] });
         queryClient.invalidateQueries({ queryKey: ["session"] });
         queryClient.invalidateQueries({ queryKey: ["tenant"] });
+        queryClient.invalidateQueries({ queryKey: ["user-tenant-count"] });
       }
     },
   });
@@ -280,6 +297,7 @@ export const useRemoveMember = () => {
     onSuccess: (data) => {
       if (data.success) {
         queryClient.invalidateQueries({ queryKey: ["tenant-members"] });
+        queryClient.invalidateQueries({ queryKey: ["user-tenant-count"] });
       }
     },
   });

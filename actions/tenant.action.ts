@@ -1167,6 +1167,53 @@ export const getTenantUsage = async () => {
   }
 };
 
+// Tenants stats
+export const getUserTenantsStats = async () => {
+  const session = await getCurrentUser();
+
+  try {
+    const [tenantCount, activeTenantCount] = await Promise.all([
+      prisma.tenant.count({
+        where: { members: { some: { userId: session.id } } },
+      }),
+      prisma.tenant.count({
+        where: { members: { some: { userId: session.id } }, isActive: true },
+      }),
+    ]);
+
+    const tenantMemberships = await prisma.tenantMember.findMany({
+      where: { userId: session.id },
+      include: {
+        tenant: {
+          include: {
+            _count: {
+              select: {
+                members: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const memmbersCount = tenantMemberships.reduce((total, membership) => {
+      return total + membership.tenant._count.members;
+    }, 0);
+
+    return {
+      success: true,
+      stats: {
+        tenants: tenantCount,
+        members: memmbersCount,
+        activeTenants: activeTenantCount,
+      },
+    };
+  } catch (error) {
+    console.error("Error fetching tenant:", error);
+    return { success: false, error: "Failed to load workspace details" };
+  }
+};
+
 export const uploadLogo = async (img: string) => {
   try {
     const { tenantId } = await verifyTenantPermission();
