@@ -1,3 +1,4 @@
+import { User } from "@/generated/prisma/client";
 import "better-auth/types";
 
 declare module "better-auth/types" {
@@ -14,6 +15,6 @@ declare module "better-auth/types" {
       tenantId?: string;
       impersonatedBy?: string;
     };
-    user: any;
+    user: User;
   }
 }

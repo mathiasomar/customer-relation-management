@@ -7,6 +7,7 @@ import { normalizeName, VALID_DOMAINS } from "./utils";
 import { lastLoginMethod, admin } from "better-auth/plugins";
 import { UserRole } from "@/generated/prisma/enums";
 import { ac, roles } from "@/lib/permision";
+import { Session } from "better-auth/types";
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
@@ -121,7 +122,7 @@ export const auth = betterAuth({
         },
       },
       get: {
-        after: async (session) => {
+        after: async (session: Session) => {
           // Always fetch the latest tenantId from the session record
           if (session && session.session?.id) {
             const sessionRecord = await prisma.session.findUnique({
@@ -132,7 +133,6 @@ export const auth = betterAuth({
             if (sessionRecord?.tenantId) {
               // Set tenantId on both session and user for flexibility
               session.session.tenantId = sessionRecord.tenantId;
-              session.user.tenantId = sessionRecord.tenantId;
             }
           }
 
