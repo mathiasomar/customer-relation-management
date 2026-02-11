@@ -1,3 +1,4 @@
+import { TenantMember } from "@/generated/prisma/client";
 import { SubscriptionStatus } from "@/generated/prisma/enums";
 
 export type TenantPermissions = {
@@ -21,6 +22,7 @@ export type Tenant = {
   currentPeriodEndsAt?: Date | null;
   createdAt: Date;
   isActive: boolean;
+  members: TenantMember[];
   memberCount: number;
 };
 

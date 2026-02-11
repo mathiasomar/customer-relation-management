@@ -7,9 +7,10 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import ViewDataTable from "./view-data-table";
+// import ViewDataTable from "./view-data-table";
 import AddTenant from "@/components/dashboard/add-tenant";
 import CardsStat from "./cards-stat";
+import ViewOrganizations from "./view-organizations";
 
 const OrganizationPage = () => {
   return (
@@ -34,7 +35,9 @@ const OrganizationPage = () => {
       <div>
         <Search />
       </div>
-      <ViewDataTable />
+      {/* <ViewDataTable /> */}
+      {/* Organization cards */}
+      <ViewOrganizations />
     </div>
   );
 };

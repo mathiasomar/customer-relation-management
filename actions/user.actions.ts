@@ -64,6 +64,20 @@ export const getUsers = async (filters: UserFilters = {}) => {
   }
 };
 
+export const getUser = async (id: string) => {
+  try {
+    const user = await prisma.user.findUnique({ where: { id } });
+    return user;
+  } catch (error) {
+    console.log(error);
+    return {
+      error: {
+        message: "Failed to fetch user",
+      },
+    };
+  }
+};
+
 export const checkEmail = async (email: string) => {
   const session = getCurrentUser();
 
