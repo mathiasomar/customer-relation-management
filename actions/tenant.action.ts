@@ -109,7 +109,9 @@ export const getAllUserTenants = async () => {
             logo: true,
             createdAt: true,
             isActive: true,
-            members: true,
+            members: {
+              take: 5,
+            },
             tenantSubscription: {
               include: {
                 subscription: true,
@@ -134,6 +136,7 @@ export const getAllUserTenants = async () => {
       currentPeriodEnds: tm.tenant.tenantSubscription?.currentPeriodEnds,
       createdAt: tm.tenant.createdAt,
       isActive: tm.tenant.isActive,
+      members: tm.tenant.members,
       memberCount: tm.tenant.members.length,
     }));
 
@@ -165,7 +168,7 @@ export const getAdminTenants = async () => {
         logo: true,
         createdAt: true,
         isActive: true,
-        members: true,
+        members: { take: 5 },
         tenantSubscription: {
           include: {
             subscription: {
@@ -192,6 +195,7 @@ export const getAdminTenants = async () => {
       currentPeriodEnds: tm.tenantSubscription?.currentPeriodEnds,
       createdAt: tm.createdAt,
       isActive: tm.isActive,
+      members: tm.members,
       memberCount: tm.members.length,
     }));
 

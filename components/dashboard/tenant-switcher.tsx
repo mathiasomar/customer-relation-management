@@ -146,9 +146,9 @@ const TenantSwitcher = () => {
       </DropdownMenu>
       {sesssion?.session.tenantId && (
         <div className="flex items-center gap-2">
-          <Button asChild>
+          <Button asChild size={"sm"}>
             <Link href="/dashboard/organizations/view">
-              <View />
+              <View /> View
             </Link>
           </Button>
           <span
