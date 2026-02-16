@@ -4,6 +4,7 @@ import {
   verifyTenantPermission,
 } from "@/lib/permisions/tenant";
 import { prisma } from "@/lib/prisma";
+import { ContactFilters } from "@/types/contact";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
@@ -46,42 +47,10 @@ const updateContactSchema = createContactSchema.partial().extend({
   isActive: z.boolean().optional(),
 });
 
-// Schema for contact filters
-const contactFiltersSchema = z.object({
-  search: z.string().optional(),
-  assigneeId: z.string().optional(),
-  tags: z.array(z.string()).optional(),
-  isActive: z.boolean().optional(),
-  company: z.string().optional(),
-  dateRange: z
-    .object({
-      from: z.date(),
-      to: z.date(),
-    })
-    .optional(),
-  page: z.number().int().positive().default(1),
-  limit: z.number().int().positive().max(100).default(20),
-  sortBy: z
-    .enum([
-      "firstName",
-      "lastName",
-      "email",
-      "company",
-      "createdAt",
-      "lastContactedAt",
-    ])
-    .default("createdAt"),
-  sortOrder: z.enum(["asc", "desc"]).default("desc"),
-});
-
 // GET: Get all contacts with filters
-export const getContacts = async (
-  filters: z.infer<typeof contactFiltersSchema>,
-) => {
+export const getContacts = async (filters: ContactFilters = {}) => {
   try {
     const { tenantId } = await verifyTenantPermission();
-
-    const validatedFilters = contactFiltersSchema.parse(filters);
 
     const {
       search,
@@ -94,7 +63,7 @@ export const getContacts = async (
       limit = 20,
       sortBy = "createdAt",
       sortOrder = "desc",
-    } = validatedFilters;
+    } = filters;
 
     // Build where clause
     const where: Prisma.ContactWhereInput = {
@@ -336,9 +305,7 @@ export const getContact = async (contactId: string) => {
 };
 
 // CREATE: Create a new contact
-export const createContact = async (
-  data: z.infer<typeof createContactSchema>,
-) => {
+export const createContact = async (data: Prisma.ContactCreateInput) => {
   try {
     const session = await getCurrentUser();
     const { tenantId } = await verifyTenantPermission();
@@ -933,14 +900,11 @@ export const getContactOpportunities = async (
 };
 
 // EXPORT: Export contacts to CSV
-export const exportContacts = async (
-  filters: z.infer<typeof contactFiltersSchema>,
-) => {
+export const exportContacts = async (filters: ContactFilters = {}) => {
   try {
     const { tenantId } = await verifyTenantPermission();
 
-    const validatedFilters = contactFiltersSchema.parse(filters);
-    const { search, assigneeId, tags, company } = validatedFilters;
+    const { search, assigneeId, tags, company } = filters;
 
     // Build where clause
     const where: Prisma.ContactWhereInput = {
