@@ -15,6 +15,7 @@ import {
   getContactOpportunities,
   exportContacts,
   getContactStats,
+  getTags,
 } from "@/actions/contact.action";
 import { Prisma } from "@/generated/prisma/client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -186,6 +187,18 @@ export const useContactTags = (contactId: string) => {
       return result.tags;
     },
     enabled: !!contactId,
+    staleTime: 2 * 60 * 1000, // 2 minutes
+  });
+};
+
+export const useTags = () => {
+  return useQuery({
+    queryKey: ["tags"],
+    queryFn: async () => {
+      const result = await getTags();
+      if (!result.success) throw new Error(result.error);
+      return result.tags;
+    },
     staleTime: 2 * 60 * 1000, // 2 minutes
   });
 };

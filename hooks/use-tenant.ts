@@ -334,6 +334,8 @@ export const useSwitchTenant = () => {
         queryClient.invalidateQueries({ queryKey: ["all-tenants"] });
         queryClient.invalidateQueries({ queryKey: ["tenant-members"] });
         queryClient.invalidateQueries({ queryKey: ["tenant-usage"] });
+        queryClient.invalidateQueries({ queryKey: ["contact-stats"] });
+        queryClient.invalidateQueries({ queryKey: ["contacts"] });
 
         // Clear session cache to ensure new tenant context is loaded
         queryClient.invalidateQueries({ queryKey: ["session"] });

@@ -1,3 +1,5 @@
+"use server";
+
 import { Prisma } from "@/generated/prisma/client";
 import {
   getCurrentUser,
@@ -640,6 +642,22 @@ export const bulkDeleteContacts = async (contactIds: string[]) => {
 };
 
 // GET: Get contact tags
+export const getTags = async () => {
+  try {
+    const tags = await prisma.tag.findMany();
+
+    return {
+      success: true,
+      tags,
+    };
+  } catch (error) {
+    console.error("Error fetching contact tags:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to fetch tags",
+    };
+  }
+};
 export const getContactTags = async (contactId: string) => {
   try {
     const { tenantId } = await verifyTenantPermission();
