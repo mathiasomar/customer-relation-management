@@ -161,6 +161,16 @@ export const getContacts = async (filters: ContactFilters = {}) => {
     const contacts = await prisma.contact.findMany({
       where,
       include: {
+        _count: {
+          select: {
+            leads: true,
+            opportunities: true,
+            deals: true,
+            activities: true,
+            notesList: true,
+            tasks: true,
+          },
+        },
         assignee: {
           select: {
             id: true,
@@ -172,16 +182,6 @@ export const getContacts = async (filters: ContactFilters = {}) => {
         tags: {
           include: {
             tag: true,
-          },
-        },
-        _count: {
-          select: {
-            leads: true,
-            opportunities: true,
-            deals: true,
-            activities: true,
-            notesList: true,
-            tasks: true,
           },
         },
       },

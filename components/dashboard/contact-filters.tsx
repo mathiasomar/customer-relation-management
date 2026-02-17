@@ -2,9 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { format } from "date-fns";
 import {
   Search,
@@ -53,7 +50,6 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  DropdownMenuCheckboxItem,
 } from "@/components/ui/dropdown-menu";
 import {
   Command,
@@ -73,32 +69,24 @@ import { useTenantMembers } from "@/hooks/use-tenant";
 import { useExportContacts } from "@/hooks/use-contact";
 import { useTags } from "@/hooks/use-tag";
 
-// const filterSchema = z.object({
-//   search: z.string().optional(),
-//   assigneeId: z.string().optional(),
-//   tags: z.array(z.string()).optional(),
-//   isActive: z.boolean().optional(),
-//   company: z.string().optional(),
-//   dateRange: z
-//     .object({
-//       from: z.date().optional(),
-//       to: z.date().optional(),
-//     })
-//     .optional(),
-//   sortBy: z
-//     .enum([
-//       "firstName",
-//       "lastName",
-//       "email",
-//       "company",
-//       "createdAt",
-//       "lastContactedAt",
-//     ])
-//     .optional(),
-//   sortOrder: z.enum(["asc", "desc"]).optional(),
-// });
+// Define proper types for the data
+interface Member {
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    image?: string | null;
+  };
+}
 
-// type FilterValues = z.infer<typeof filterSchema>;
+interface Tag {
+  id: string;
+  name: string;
+  color: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  isActive: boolean;
+}
 
 interface ContactFiltersProps {
   initialFilters?: ContactFilters;
@@ -117,7 +105,9 @@ const datePresets = [
   { label: "Last month", value: "lastMonth" },
   { label: "This year", value: "thisYear" },
   { label: "Custom", value: "custom" },
-];
+] as const;
+
+type DatePreset = (typeof datePresets)[number]["value"];
 
 export function ContactFiltersSection({
   initialFilters = {},
@@ -148,11 +138,13 @@ export function ContactFiltersSection({
   const [showInactive, setShowInactive] = useState(
     initialFilters.isActive === false,
   );
-  const [sortBy, setSortBy] = useState(initialFilters.sortBy || "createdAt");
-  const [sortOrder, setSortOrder] = useState(
+  const [sortBy, setSortBy] = useState<ContactFilters["sortBy"]>(
+    initialFilters.sortBy || "createdAt",
+  );
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">(
     initialFilters.sortOrder || "desc",
   );
-  const [datePreset, setDatePreset] = useState<string>("custom");
+  const [datePreset, setDatePreset] = useState<DatePreset>("custom");
 
   // Fetch data for filters
   const { data: membersData, isLoading: membersLoading } = useTenantMembers();
@@ -206,7 +198,7 @@ export function ContactFiltersSection({
       params.delete("to");
     }
 
-    params.set("sortBy", sortBy);
+    params.set("sortBy", sortBy ?? "");
     params.set("sortOrder", sortOrder);
     params.set("page", "1"); // Reset to first page on filter change
 
@@ -222,7 +214,7 @@ export function ContactFiltersSection({
         company: selectedCompany || undefined,
         dateRange:
           dateRange.from || dateRange.to
-            ? (dateRange as { from: Date; to: Date })
+            ? { from: dateRange.from!, to: dateRange.to! }
             : undefined,
         sortBy: sortBy,
         sortOrder: sortOrder,
@@ -264,12 +256,13 @@ export function ContactFiltersSection({
     dateRange.from ||
     dateRange.to;
 
-  const getAssigneeName = (id: string) => {
-    const member = membersData?.find((m) => m.user.id === id);
+  const getAssigneeName = (id: string): string => {
+    if (!membersData) return id;
+    const member = membersData.find((m: Member) => m.user.id === id);
     return member?.user.name || id;
   };
 
-  const handleDatePresetChange = (preset: string) => {
+  const handleDatePresetChange = (preset: DatePreset) => {
     setDatePreset(preset);
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -328,14 +321,14 @@ export function ContactFiltersSection({
         company: selectedCompany || undefined,
         dateRange:
           dateRange.from || dateRange.to
-            ? (dateRange as { from: Date; to: Date })
+            ? { from: dateRange.from!, to: dateRange.to! }
             : undefined,
       });
 
       // Convert to CSV and download
-      if (data) {
+      if (data && data.length > 0) {
         const headers = Object.keys(data[0]).join(",");
-        const rows = data.map((row) =>
+        const rows = data.map((row: Record<string, unknown>) =>
           Object.values(row)
             .map((value) =>
               typeof value === "string" && value.includes(",")
@@ -356,6 +349,11 @@ export function ContactFiltersSection({
     } catch (error) {
       console.error("Export failed:", error);
     }
+  };
+
+  const getTagById = (tagId: string): Tag | undefined => {
+    if (!tagsData) return undefined;
+    return tagsData.find((tag: Tag) => tag.id === tagId);
   };
 
   return (
@@ -413,7 +411,7 @@ export function ContactFiltersSection({
                 </SheetDescription>
               </SheetHeader>
 
-              <div className="py-6 space-y-6">
+              <div className="py-6 px-4 space-y-6">
                 {/* Assignee Filter */}
                 <div className="space-y-3">
                   <Label className="text-sm font-medium flex items-center">
@@ -421,23 +419,23 @@ export function ContactFiltersSection({
                     Assigned To
                   </Label>
                   <Select
-                    value={selectedAssignee || ""}
+                    value={selectedAssignee || "all"}
                     onValueChange={(value) =>
-                      setSelectedAssignee(value || null)
+                      setSelectedAssignee(value === "all" ? null : value)
                     }
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="All assignees" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All assignees</SelectItem>
+                      <SelectItem value="all">All assignees</SelectItem>
                       <SelectItem value="unassigned">Unassigned</SelectItem>
                       {membersLoading ? (
                         <SelectItem value="loading" disabled>
                           Loading...
                         </SelectItem>
                       ) : (
-                        membersData?.map((member) => (
+                        membersData?.map((member: Member) => (
                           <SelectItem
                             key={member.user.id}
                             value={member.user.id}
@@ -476,7 +474,7 @@ export function ContactFiltersSection({
                           {tagsLoading ? (
                             <CommandItem disabled>Loading...</CommandItem>
                           ) : (
-                            tagsData?.map((tag: any) => (
+                            tagsData?.map((tag: Tag) => (
                               <CommandItem
                                 key={tag.id}
                                 onSelect={() => {
@@ -511,7 +509,7 @@ export function ContactFiltersSection({
                   {selectedTags.length > 0 && (
                     <div className="flex flex-wrap gap-1 mt-2">
                       {selectedTags.map((tagId) => {
-                        const tag = tagsData?.find((t: any) => t.id === tagId);
+                        const tag = getTagById(tagId);
                         return tag ? (
                           <Badge
                             key={tagId}
@@ -521,7 +519,7 @@ export function ContactFiltersSection({
                               backgroundColor: tag.color
                                 ? `${tag.color}20`
                                 : undefined,
-                              borderColor: tag.color ?? "",
+                              borderColor: tag.color || undefined,
                             }}
                           >
                             {tag.name}
@@ -566,7 +564,9 @@ export function ContactFiltersSection({
 
                   <Select
                     value={datePreset}
-                    onValueChange={handleDatePresetChange}
+                    onValueChange={(value: DatePreset) =>
+                      handleDatePresetChange(value)
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select date range" />
@@ -653,7 +653,7 @@ export function ContactFiltersSection({
                     id="showInactive"
                     checked={showInactive}
                     onCheckedChange={(checked) =>
-                      setShowInactive(checked as boolean)
+                      setShowInactive(checked === true)
                     }
                   />
                   <Label htmlFor="showInactive">
@@ -666,7 +666,12 @@ export function ContactFiltersSection({
                 {/* Sort Options */}
                 <div className="space-y-3">
                   <Label className="text-sm font-medium">Sort By</Label>
-                  <Select value={sortBy} onValueChange={setSortBy}>
+                  <Select
+                    value={sortBy}
+                    onValueChange={(value: string) =>
+                      setSortBy(value as ContactFilters["sortBy"])
+                    }
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -684,7 +689,7 @@ export function ContactFiltersSection({
 
                   <Select
                     value={sortOrder}
-                    onValueChange={(value) =>
+                    onValueChange={(value: string) =>
                       setSortOrder(value as "asc" | "desc")
                     }
                   >
@@ -737,7 +742,9 @@ export function ContactFiltersSection({
                 ].map((option) => (
                   <DropdownMenuItem
                     key={option.value}
-                    onClick={() => setSortBy(option.value)}
+                    onClick={() =>
+                      setSortBy(option.value as ContactFilters["sortBy"])
+                    }
                     className="flex items-center justify-between"
                   >
                     {option.label}
@@ -816,7 +823,7 @@ export function ContactFiltersSection({
           )}
 
           {selectedTags.map((tagId) => {
-            const tag = tagsData?.find((t: any) => t.id === tagId);
+            const tag = getTagById(tagId);
             return tag ? (
               <Badge
                 key={tagId}

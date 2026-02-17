@@ -39,7 +39,7 @@ const ViewContacts = () => {
     sortBy: searchParams.get("sortBy") || "createdAt",
     sortOrder: searchParams.get("sortOrder") || "desc",
   };
-  const { data: contacts, isFetching } = useContacts();
+  const { data: contacts, isFetching } = useContacts(filters as ContactFilters);
   return (
     <div className="w-full">
       {isFetching ? (
@@ -61,9 +61,9 @@ const ViewContacts = () => {
             initialFilters={filters as ContactFilters}
             totalCount={contacts.meta.total}
           />
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6">
             {contacts.data.map((contact) => (
-              <ContactCard key={contact.id} contact={contact} />
+              <ContactCard key={contact.id} contactId={contact.id} />
             ))}
           </div>
           {contacts.meta && contacts.meta.total > 0 && (
