@@ -6,7 +6,7 @@ import {
   verifyTenantPermission,
 } from "@/lib/permisions/tenant";
 import { prisma } from "@/lib/prisma";
-import { ContactFilters } from "@/types/contact";
+import { ContactFilters, CreateContactInput } from "@/types/contact";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
@@ -20,7 +20,7 @@ const createContactSchema = z.object({
   jobTitle: z.string().max(100).optional().nullable(),
   department: z.string().max(100).optional().nullable(),
   company: z.string().max(200).optional().nullable(),
-  avatar: z.string().url("Invalid URL").optional().nullable(),
+  avatar: z.string().optional().nullable(),
   timezone: z.string().optional().nullable(),
 
   // Address
@@ -31,9 +31,53 @@ const createContactSchema = z.object({
   country: z.string().optional().nullable(),
 
   // Social
-  linkedin: z.string().url("Invalid LinkedIn URL").optional().nullable(),
-  twitter: z.string().optional().nullable(),
-  facebook: z.string().url("Invalid Facebook URL").optional().nullable(),
+  linkedin: z
+    .string()
+    .trim()
+    .optional()
+    .nullable()
+    .refine(
+      (value) =>
+        !value ||
+        /^(https?:\/\/)?(www\.)?linkedin\.com\/(in|company)\/[A-Za-z0-9_-]+\/?$/.test(
+          value,
+        ),
+      {
+        message: "Invalid LinkedIn URL",
+      },
+    ),
+
+  twitter: z
+    .string()
+    .trim()
+    .optional()
+    .nullable()
+    .refine(
+      (value) =>
+        !value ||
+        /^(https?:\/\/)?(www\.)?(twitter\.com|x\.com)\/[A-Za-z0-9_]{1,15}\/?$/.test(
+          value,
+        ),
+      {
+        message: "Invalid Twitter/X URL",
+      },
+    ),
+
+  facebook: z
+    .string()
+    .trim()
+    .optional()
+    .nullable()
+    .refine(
+      (value) =>
+        !value || // allow undefined, null, empty string
+        /^(https?:\/\/)?(www\.)?facebook\.com\/(profile\.php\?id=\d+|[A-Za-z0-9\.]{5,})\/?$/.test(
+          value,
+        ),
+      {
+        message: "Invalid Facebook URL",
+      },
+    ),
 
   // Metadata
   source: z.string().optional().nullable(),
@@ -307,9 +351,15 @@ export const getContact = async (contactId: string) => {
 };
 
 // CREATE: Create a new contact
-export const createContact = async (data: Prisma.ContactCreateInput) => {
+export const createContact = async (data: CreateContactInput) => {
   try {
     const session = await getCurrentUser();
+    if (!session) {
+      return {
+        success: false,
+        error: "Unauthorized",
+      };
+    }
     const { tenantId } = await verifyTenantPermission();
 
     // Validate input data
@@ -333,23 +383,54 @@ export const createContact = async (data: Prisma.ContactCreateInput) => {
       }
     }
 
+    const { tags, ...contactData } = validatedData;
+
     // Create contact with transaction
     const contact = await prisma.$transaction(async (tx) => {
       // Create the contact
       const newContact = await tx.contact.create({
         data: {
-          ...validatedData,
+          firstName: contactData.firstName,
+          lastName: contactData.lastName,
+          email: contactData.email,
+          phone: contactData.phone,
+          mobile: contactData.mobile,
+          jobTitle: contactData.jobTitle,
+          department: contactData.department,
+          company: contactData.company,
+          avatar: contactData.avatar,
+          timezone: contactData.timezone,
+          street: contactData.street,
+          city: contactData.city,
+          state: contactData.state,
+          postalCode: contactData.postalCode,
+          country: contactData.country,
+          linkedin: contactData.linkedin,
+          twitter: contactData.twitter,
+          facebook: contactData.facebook,
+          source: contactData.source,
+          notes: contactData.notes,
           tenantId: tenantId ?? "",
-          assigneeId: validatedData.assigneeId || null,
-          tags: validatedData.tags as Prisma.TagAssignmentUncheckedCreateNestedManyWithoutContactInput,
+          assigneeId: contactData.assigneeId || null,
           customFields: {},
         },
       });
 
-      // Handle tags if provided
-      if (validatedData.tags && validatedData.tags.length > 0) {
+      // // Handle tags if provided
+      // if (validatedData.tags && validatedData.tags.length > 0) {
+      //   await tx.tagAssignment.createMany({
+      //     data: validatedData.tags.map((tagId) => ({
+      //       tagId,
+      //       contactId: newContact.id,
+      //       entityType: "contact",
+      //       assignedById: session.id,
+      //     })),
+      //   });
+      // }
+
+      if (tags && tags.length > 0) {
         await tx.tagAssignment.createMany({
-          data: validatedData.tags.map((tagId) => ({
+          data: tags.map((tagId: string) => ({
             tagId,
             contactId: newContact.id,
             entityType: "contact",
@@ -641,23 +722,6 @@ export const bulkDeleteContacts = async (contactIds: string[]) => {
   }
 };
 
-// GET: Get contact tags
-export const getTags = async () => {
-  try {
-    const tags = await prisma.tag.findMany();
-
-    return {
-      success: true,
-      tags,
-    };
-  } catch (error) {
-    console.error("Error fetching contact tags:", error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "Failed to fetch tags",
-    };
-  }
-};
 export const getContactTags = async (contactId: string) => {
   try {
     const { tenantId } = await verifyTenantPermission();

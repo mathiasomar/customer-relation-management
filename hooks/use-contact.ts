@@ -15,9 +15,9 @@ import {
   getContactOpportunities,
   exportContacts,
   getContactStats,
-  getTags,
 } from "@/actions/contact.action";
 import { Prisma } from "@/generated/prisma/client";
+import { CreateContactInput } from "@/types/contact";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export interface ContactFilters {
@@ -34,31 +34,6 @@ export interface ContactFilters {
   limit?: number;
   sortBy?: string;
   sortOrder?: "asc" | "desc";
-}
-
-export interface CreateContactInput {
-  firstName: string;
-  lastName: string;
-  email?: string | null;
-  phone?: string | null;
-  mobile?: string | null;
-  jobTitle?: string | null;
-  department?: string | null;
-  company?: string | null;
-  avatar?: string | null;
-  timezone?: string | null;
-  street?: string | null;
-  city?: string | null;
-  state?: string | null;
-  postalCode?: string | null;
-  country?: string | null;
-  linkedin?: string | null;
-  twitter?: string | null;
-  facebook?: string | null;
-  source?: string | null;
-  notes?: string | null;
-  assigneeId?: string | null;
-  tags?: string[];
 }
 
 export interface UpdateContactInput extends Partial<CreateContactInput> {
@@ -97,7 +72,7 @@ export const useCreateContact = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (data: Prisma.ContactCreateInput) => {
+    mutationFn: async (data: CreateContactInput) => {
       const result = await createContact(data);
       if (!result.success) throw new Error(result.error);
       return result;
@@ -187,18 +162,6 @@ export const useContactTags = (contactId: string) => {
       return result.tags;
     },
     enabled: !!contactId,
-    staleTime: 2 * 60 * 1000, // 2 minutes
-  });
-};
-
-export const useTags = () => {
-  return useQuery({
-    queryKey: ["tags"],
-    queryFn: async () => {
-      const result = await getTags();
-      if (!result.success) throw new Error(result.error);
-      return result.tags;
-    },
     staleTime: 2 * 60 * 1000, // 2 minutes
   });
 };

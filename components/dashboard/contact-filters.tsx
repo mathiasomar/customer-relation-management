@@ -70,7 +70,8 @@ import { useDebounce } from "@/hooks/use-debounce";
 
 import { ContactFilters } from "@/types/contact";
 import { useTenantMembers } from "@/hooks/use-tenant";
-import { useExportContacts, useTags } from "@/hooks/use-contact";
+import { useExportContacts } from "@/hooks/use-contact";
+import { useTags } from "@/hooks/use-tag";
 
 // const filterSchema = z.object({
 //   search: z.string().optional(),
