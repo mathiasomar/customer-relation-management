@@ -5,7 +5,6 @@ import {
   Mail,
   FileText,
   Calendar,
-  Activity,
   Send,
   Paperclip,
   Smile,
@@ -14,6 +13,7 @@ import {
   Video,
   CheckCircle2,
   Clock,
+  ActivityIcon,
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -33,17 +33,16 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
-import { authClient } from "@/lib/auth-client";
+// import { authClient } from "@/lib/auth-client";
+import { ContactActivity, ContactNote, ContactTask } from "@/types/contact";
 
 interface ContactTabsProps {
-  contactId: string;
-  initialActivities: any[];
-  initialNotes: any[];
-  initialTasks: any[];
+  initialActivities: ContactActivity[];
+  initialNotes: ContactNote[];
+  initialTasks: ContactTask[];
 }
 
 export function ContactTabs({
-  contactId,
   initialActivities,
   initialNotes,
   initialTasks,
@@ -53,8 +52,8 @@ export function ContactTabs({
   const [newEmail, setNewEmail] = useState({ subject: "", body: "" });
   const [newTask, setNewTask] = useState({ title: "", dueDate: "" });
 
-  const { data: session, isPending } = authClient.useSession();
-  const tenant = isPending ? null : session?.session.tenantId;
+  // const { data: session, isPending } = authClient.useSession();
+  // const tenant = isPending ? null : session?.session.tenantId;
 
   return (
     <Card>
@@ -69,7 +68,7 @@ export function ContactTabs({
           <div className="px-6 pt-2 border-b">
             <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="activity" className="flex items-center gap-2">
-                <Activity className="h-4 w-4" />
+                <ActivityIcon className="h-4 w-4" />
                 Activity
               </TabsTrigger>
               <TabsTrigger value="notes" className="flex items-center gap-2">
@@ -92,7 +91,7 @@ export function ContactTabs({
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold">Recent Activity</h3>
               <Button variant="outline" size="sm">
-                <Activity className="mr-2 h-4 w-4" />
+                <ActivityIcon className="mr-2 h-4 w-4" />
                 Log Activity
               </Button>
             </div>
@@ -100,7 +99,7 @@ export function ContactTabs({
             <ScrollArea className="h-100 pr-4">
               {initialActivities.length === 0 ? (
                 <div className="text-center py-12 text-muted-foreground">
-                  <Activity className="h-12 w-12 mx-auto mb-4 opacity-20" />
+                  <ActivityIcon className="h-12 w-12 mx-auto mb-4 opacity-20" />
                   <p>No activities yet</p>
                   <Button variant="link" className="mt-2">
                     Log your first activity
@@ -108,7 +107,7 @@ export function ContactTabs({
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {initialActivities.map((activity: any) => (
+                  {initialActivities.map((activity) => (
                     <div
                       key={activity.id}
                       className="flex gap-4 p-4 rounded-lg border bg-card hover:bg-accent/5 transition-colors"
@@ -152,7 +151,7 @@ export function ContactTabs({
                         )}
                         <div className="flex items-center gap-2 mt-2">
                           <Avatar className="h-5 w-5">
-                            <AvatarImage src={activity.creator?.image} />
+                            <AvatarImage src={activity.creator?.image || ""} />
                             <AvatarFallback className="text-[10px]">
                               {activity.creator?.name?.[0]}
                             </AvatarFallback>
@@ -213,7 +212,7 @@ export function ContactTabs({
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {initialNotes.map((note: any) => (
+                    {initialNotes.map((note) => (
                       <Card key={note.id}>
                         <CardContent className="p-4">
                           <p className="text-sm whitespace-pre-wrap">
@@ -222,7 +221,7 @@ export function ContactTabs({
                           <div className="flex items-center justify-between mt-3">
                             <div className="flex items-center gap-2">
                               <Avatar className="h-5 w-5">
-                                <AvatarImage src={note.author?.image} />
+                                <AvatarImage src={note.author?.image || ""} />
                                 <AvatarFallback className="text-[10px]">
                                   {note.author?.name?.[0]}
                                 </AvatarFallback>
@@ -355,7 +354,7 @@ export function ContactTabs({
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    {initialTasks.map((task: any) => (
+                    {initialTasks.map((task) => (
                       <div
                         key={task.id}
                         className="flex items-center justify-between p-3 rounded-lg border"
@@ -368,7 +367,12 @@ export function ContactTabs({
                               <Clock className="h-3 w-3 text-muted-foreground" />
                               <span className="text-xs text-muted-foreground">
                                 Due{" "}
-                                {format(new Date(task.dueDate), "MMM d, yyyy")}
+                                {task.dueDate
+                                  ? format(
+                                      new Date(task.dueDate),
+                                      "MMM d, yyyy",
+                                    )
+                                  : ""}
                               </span>
                               <Badge
                                 variant="outline"
@@ -387,7 +391,7 @@ export function ContactTabs({
                         </div>
                         <div className="flex items-center gap-2">
                           <Avatar className="h-6 w-6">
-                            <AvatarImage src={task.assignee?.image} />
+                            <AvatarImage src={task.assignee?.image || ""} />
                             <AvatarFallback className="text-[10px]">
                               {task.assignee?.name?.[0]}
                             </AvatarFallback>

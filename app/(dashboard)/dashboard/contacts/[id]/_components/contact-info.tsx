@@ -18,9 +18,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ContactType } from "@/types/contact";
 
 interface ContactInfoProps {
-  contact: any;
+  contact: ContactType;
 }
 
 export function ContactInfo({ contact }: ContactInfoProps) {
@@ -239,7 +240,7 @@ export function ContactInfo({ contact }: ContactInfoProps) {
               <div className="space-y-2">
                 <p className="text-sm font-medium">Tags</p>
                 <div className="flex flex-wrap gap-1">
-                  {contact.tags.map(({ tag, assignedBy }: any) => (
+                  {contact.tags.map(({ tag }) => (
                     <Badge
                       key={tag.id}
                       variant="secondary"
@@ -248,8 +249,8 @@ export function ContactInfo({ contact }: ContactInfoProps) {
                         backgroundColor: tag.color
                           ? `${tag.color}20`
                           : undefined,
-                        borderColor: tag.color,
-                        color: tag.color,
+                        borderColor: tag.color ?? "",
+                        color: tag.color ?? "",
                       }}
                     >
                       {tag.name}

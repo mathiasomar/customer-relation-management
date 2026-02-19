@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 
 import {
@@ -17,17 +16,17 @@ import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { format } from "date-fns";
 import { authClient } from "@/lib/auth-client";
+import { ContactType } from "@/types/contact";
+import { Deal, Opportunity } from "@/generated/prisma/client";
 
 interface ContactSidebarProps {
-  contact: any;
-  leads: any[];
-  opportunities: any[];
-  deals: any[];
+  contact: ContactType;
+  opportunities: Opportunity[];
+  deals: Deal[];
 }
 
 export function ContactSidebar({
   contact,
-  leads,
   opportunities,
   deals,
 }: ContactSidebarProps) {
@@ -35,14 +34,14 @@ export function ContactSidebar({
   const tenant = isPending ? "" : session?.session.tenantId;
 
   const totalValue = deals.reduce(
-    (sum: number, deal: any) => sum + deal.amount,
+    (sum: number, deal: Deal) => sum + deal.amount,
     0,
   );
   const wonDeals = deals.filter(
-    (deal: any) => deal.status === "CLOSED_WON",
+    (deal: Deal) => deal.status === "COMPLETED",
   ).length;
   const lostDeals = deals.filter(
-    (deal: any) => deal.status === "CLOSED_LOST",
+    (deal: Deal) => deal.status === "CANCELLED",
   ).length;
 
   return (
@@ -119,7 +118,7 @@ export function ContactSidebar({
             </div>
           </CardHeader>
           <CardContent className="space-y-3">
-            {opportunities.slice(0, 3).map((opp: any) => (
+            {opportunities.slice(0, 3).map((opp) => (
               <div key={opp.id} className="space-y-2">
                 <div className="flex items-center justify-between">
                   <p className="text-sm font-medium">{opp.name}</p>
@@ -153,7 +152,7 @@ export function ContactSidebar({
             </div>
           </CardHeader>
           <CardContent className="space-y-3">
-            {deals.slice(0, 3).map((deal: any) => (
+            {deals.slice(0, 3).map((deal) => (
               <div key={deal.id} className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium">{deal.name}</p>
@@ -163,9 +162,9 @@ export function ContactSidebar({
                 </div>
                 <Badge
                   className={
-                    deal.status === "CLOSED_WON"
+                    deal.status === "COMPLETED"
                       ? "bg-green-100 text-green-700"
-                      : deal.status === "CLOSED_LOST"
+                      : deal.status === "CANCELLED"
                         ? "bg-red-100 text-red-700"
                         : "bg-blue-100 text-blue-700"
                   }
@@ -202,7 +201,7 @@ export function ContactSidebar({
             <div className="flex items-center justify-between">
               <span className="text-sm">Open Tasks</span>
               <span className="text-sm font-medium">
-                {contact.tasks?.filter((t: any) => t.status !== "COMPLETED")
+                {contact.tasks?.filter((t) => t.status !== "COMPLETED")
                   .length || 0}
               </span>
             </div>

@@ -13,10 +13,16 @@ import { Separator } from "@/components/ui/separator";
 import { useContact } from "@/hooks/use-contact";
 import { useParams } from "next/navigation";
 import { ContactHeader } from "./_components/contact-header";
-import { Contact } from "@/generated/prisma/client";
+import { Contact, Deal, Opportunity } from "@/generated/prisma/client";
 import { ContactInfo } from "./_components/contact-info";
 import { ContactTabs } from "./_components/contact-tabs";
 import { ContactSidebar } from "./_components/contact-sidebar";
+import {
+  ContactActivity,
+  ContactNote,
+  ContactTask,
+  ContactType,
+} from "@/types/contact";
 
 const ContactPage = () => {
   const params = useParams();
@@ -55,23 +61,21 @@ const ContactPage = () => {
             {/* Left Column - Contact Details */}
             <div className="lg:col-span-2 space-y-6">
               {/* Contact Information Cards */}
-              <ContactInfo contact={contact} />
+              <ContactInfo contact={contact as ContactType} />
 
               {/* Tabs for Activities, Notes, Emails, Tasks */}
               <ContactTabs
-                contactId={contact?.id as string}
-                initialActivities={contact?.activities}
-                initialNotes={contact?.notesList}
-                initialTasks={contact?.tasks}
+                initialActivities={contact?.activities as ContactActivity[]}
+                initialNotes={contact?.notesList as ContactNote[]}
+                initialTasks={contact?.tasks as ContactTask[]}
               />
             </div>
             {/* Right Column - Related Items & Stats */}
             <div className="lg:col-span-1 space-y-6">
               <ContactSidebar
-                contact={contact}
-                leads={contact?.leads}
-                opportunities={contact?.opportunities}
-                deals={contact?.deals}
+                contact={contact as ContactType}
+                opportunities={contact?.opportunities as Opportunity[]}
+                deals={contact?.deals as Deal[]}
               />
             </div>
           </div>
