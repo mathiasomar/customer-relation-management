@@ -144,6 +144,11 @@ export function ContactTabs({
                             <Video className="h-5 w-5" />
                           </div>
                         )}
+                        {activity.type === "FOLLOW_UP" && (
+                          <div className="h-10 w-10 rounded-full bg-indigo-100 text-indigo-500 flex items-center justify-center">
+                            <Clock className="h-5 w-5" />
+                          </div>
+                        )}
                         {activity.type === "TASK" && (
                           <div className="h-10 w-10 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center">
                             <CheckCircle2 className="h-5 w-5" />
