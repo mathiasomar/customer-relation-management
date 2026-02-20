@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  getContactActivities,
   getContactActivityTypes,
   LogActivityInput,
   logContactActivity,
@@ -32,23 +31,13 @@ export const useLogContactActivity = () => {
       queryClient.invalidateQueries({
         queryKey: ["contact-activities", variables.contactId],
       });
+      queryClient.invalidateQueries({
+        queryKey: ["contacts", variables.contactId],
+      });
     },
     onError: (error) => {
       console.error("Failed to log activity:", error);
     },
-  });
-};
-
-export const useContactActivities = (contactId: string) => {
-  return useQuery({
-    queryKey: ["contact-activities", contactId],
-    queryFn: async () => {
-      const result = await getContactActivities(contactId);
-      if (!result.success)
-        throw new Error("Failed to fetch contact activities");
-      return result;
-    },
-    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 };
 
