@@ -16,7 +16,6 @@ import {
   exportContacts,
   getContactStats,
 } from "@/actions/contact.action";
-import { Prisma } from "@/generated/prisma/client";
 import { CreateContactInput } from "@/types/contact";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -56,7 +55,7 @@ export const useContacts = (filters: ContactFilters = {}) => {
 // Hook for getting a single contact by ID
 export const useContact = (contactId: string) => {
   return useQuery({
-    queryKey: ["contact", contactId],
+    queryKey: ["contacts", contactId],
     queryFn: async () => {
       const result = await getContact(contactId);
       if (!result.success) throw new Error(result.error);
@@ -101,7 +100,7 @@ export const useUpdateContact = (contactId: string) => {
     onSuccess: () => {
       // Invalidate contact queries
       queryClient.invalidateQueries({ queryKey: ["contacts"] });
-      queryClient.invalidateQueries({ queryKey: ["contact", contactId] });
+      queryClient.invalidateQueries({ queryKey: ["contacts", contactId] });
       queryClient.invalidateQueries({ queryKey: ["contact-stats"] });
     },
     onError: (error) => {

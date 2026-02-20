@@ -783,6 +783,7 @@ export const getContactActivities = async (
           select: {
             id: true,
             name: true,
+            image: true,
           },
         },
       },

@@ -34,16 +34,20 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
 // import { authClient } from "@/lib/auth-client";
-import { ContactActivity, ContactNote, ContactTask } from "@/types/contact";
+import { ContactNote, ContactTask } from "@/types/contact";
+import { Contact } from "@/generated/prisma/client";
+import LogContactActivity from "./log-contact-activity";
+import { useContactActivities } from "@/hooks/use-contact";
+import { Spinner } from "@/components/ui/spinner";
 
 interface ContactTabsProps {
-  initialActivities: ContactActivity[];
+  contact: Contact;
   initialNotes: ContactNote[];
   initialTasks: ContactTask[];
 }
 
 export function ContactTabs({
-  initialActivities,
+  contact,
   initialNotes,
   initialTasks,
 }: ContactTabsProps) {
@@ -54,6 +58,9 @@ export function ContactTabs({
 
   // const { data: session, isPending } = authClient.useSession();
   // const tenant = isPending ? null : session?.session.tenantId;
+
+  const { data: initialActivities, isFetching: loadingActivities } =
+    useContactActivities(contact.id, 10);
 
   return (
     <Card>
@@ -90,24 +97,33 @@ export function ContactTabs({
           <TabsContent value="activity" className="p-6 space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold">Recent Activity</h3>
-              <Button variant="outline" size="sm">
-                <ActivityIcon className="mr-2 h-4 w-4" />
-                Log Activity
-              </Button>
+              <LogContactActivity
+                contactId={contact.id}
+                contactName={`${contact.firstName} ${contact.lastName}`}
+              />
             </div>
 
             <ScrollArea className="h-100 pr-4">
-              {initialActivities.length === 0 ? (
+              {initialActivities?.length === 0 ? (
                 <div className="text-center py-12 text-muted-foreground">
                   <ActivityIcon className="h-12 w-12 mx-auto mb-4 opacity-20" />
                   <p>No activities yet</p>
-                  <Button variant="link" className="mt-2">
-                    Log your first activity
-                  </Button>
+                  <LogContactActivity
+                    btnType="link"
+                    contactId={contact.id}
+                    contactName={`${contact.firstName} ${contact.lastName}`}
+                  />
+                </div>
+              ) : loadingActivities ? (
+                <div className="flex justify-center items-center flex-col gap-4 h-40">
+                  <Spinner className="w-15 h-15" />
+                  <span className="text-muted-foreground animate-pulse">
+                    Loading activities...
+                  </span>
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {initialActivities.map((activity) => (
+                  {initialActivities?.map((activity) => (
                     <div
                       key={activity.id}
                       className="flex gap-4 p-4 rounded-lg border bg-card hover:bg-accent/5 transition-colors"
