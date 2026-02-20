@@ -64,13 +64,16 @@ const Navbar = () => {
           <Spinner />
         ) : (
           <DropdownMenu>
-            <DropdownMenuTrigger>
+            <DropdownMenuTrigger className="flex items-center gap-2">
               <Avatar>
                 <AvatarImage src={session?.user?.image || undefined} />
                 <AvatarFallback>
                   {session?.user?.name.slice(0, 2).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
+              <span className="text-sm font-semibold">
+                {session?.user.name}
+              </span>
             </DropdownMenuTrigger>
             <DropdownMenuContent sideOffset={10}>
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
