@@ -15,6 +15,7 @@ import {
   getContactOpportunities,
   exportContacts,
   getContactStats,
+  getContactActivityStats,
 } from "@/actions/contact.action";
 import { CreateContactInput } from "@/types/contact";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -173,6 +174,19 @@ export const useContactActivities = (contactId: string, limit?: number) => {
       const result = await getContactActivities(contactId, limit);
       if (!result.success) throw new Error(result.error);
       return result.activities;
+    },
+    enabled: !!contactId,
+    staleTime: 2 * 60 * 1000, // 2 minutes
+  });
+};
+
+export const useContactActivitiesStats = (contactId: string) => {
+  return useQuery({
+    queryKey: ["contact-activities-stats", contactId],
+    queryFn: async () => {
+      const result = await getContactActivityStats(contactId);
+      if (!result.success) throw new Error(result.error);
+      return result.stats;
     },
     enabled: !!contactId,
     staleTime: 2 * 60 * 1000, // 2 minutes

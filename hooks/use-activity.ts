@@ -32,7 +32,7 @@ export const useLogContactActivity = () => {
         queryKey: ["contact-activities", variables.contactId],
       });
       queryClient.invalidateQueries({
-        queryKey: ["contacts", variables.contactId],
+        queryKey: ["contact-activities-stats", variables.contactId],
       });
     },
     onError: (error) => {

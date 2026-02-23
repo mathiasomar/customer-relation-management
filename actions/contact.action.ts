@@ -807,6 +807,46 @@ export const getContactActivities = async (
   }
 };
 
+export const getContactActivityStats = async (contactId: string) => {
+  try {
+    const { tenantId } = await verifyTenantPermission();
+
+    const stats = await prisma.contact.findFirst({
+      where: {
+        id: contactId,
+        tenantId,
+        deletedAt: null,
+      },
+      include: {
+        _count: {
+          select: {
+            leads: true,
+            opportunities: true,
+            deals: true,
+            activities: true,
+            notesList: true,
+            tasks: true,
+          },
+        },
+      },
+    });
+
+    return {
+      success: true,
+      stats,
+    };
+  } catch (error) {
+    console.error("Error fetching contact activity stats:", error);
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Failed to fetch activity stats",
+    };
+  }
+};
+
 // GET: Get contact notes
 export const getContactNotes = async (
   contactId: string,

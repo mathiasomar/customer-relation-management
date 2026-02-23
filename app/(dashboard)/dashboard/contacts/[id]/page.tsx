@@ -13,7 +13,7 @@ import { Separator } from "@/components/ui/separator";
 import { useContact } from "@/hooks/use-contact";
 import { useParams } from "next/navigation";
 import { ContactHeader } from "./_components/contact-header";
-import { Contact, Deal, Opportunity } from "@/generated/prisma/client";
+import { Contact } from "@/generated/prisma/client";
 import { ContactInfo } from "./_components/contact-info";
 import { ContactTabs } from "./_components/contact-tabs";
 import { ContactSidebar } from "./_components/contact-sidebar";
@@ -67,11 +67,7 @@ const ContactPage = () => {
             </div>
             {/* Right Column - Related Items & Stats */}
             <div className="lg:col-span-1 space-y-6">
-              <ContactSidebar
-                contact={contact as ContactType}
-                opportunities={contact?.opportunities as Opportunity[]}
-                deals={contact?.deals as Deal[]}
-              />
+              <ContactSidebar contact={contact as ContactType} />
             </div>
           </div>
         </>

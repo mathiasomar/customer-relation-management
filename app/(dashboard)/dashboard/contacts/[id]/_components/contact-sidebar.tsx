@@ -15,34 +15,58 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { format } from "date-fns";
-import { authClient } from "@/lib/auth-client";
+// import { authClient } from "@/lib/auth-client";
 import { ContactType } from "@/types/contact";
-import { Deal, Opportunity } from "@/generated/prisma/client";
+import { Deal } from "@/generated/prisma/client";
+import {
+  useContactActivities,
+  useContactDeals,
+  useContactNotes,
+  useContactOpportunities,
+  useContactTasks,
+} from "@/hooks/use-contact";
+import { Spinner } from "@/components/ui/spinner";
 
 interface ContactSidebarProps {
   contact: ContactType;
-  opportunities: Opportunity[];
-  deals: Deal[];
+  // opportunities: Opportunity[];
+  // deals: Deal[];
 }
 
 export function ContactSidebar({
   contact,
-  opportunities,
-  deals,
+  // opportunities,
+  // deals,
 }: ContactSidebarProps) {
-  const { data: session, isPending } = authClient.useSession();
-  const tenant = isPending ? "" : session?.session.tenantId;
+  // const { data: session, isPending } = authClient.useSession();
+  // const tenant = isPending ? "" : session?.session.tenantId;
 
-  const totalValue = deals.reduce(
-    (sum: number, deal: Deal) => sum + deal.amount,
-    0,
+  const { data: allDeals, isFetching: isFetchingAllDeals } = useContactDeals(
+    contact.id,
   );
-  const wonDeals = deals.filter(
-    (deal: Deal) => deal.status === "COMPLETED",
-  ).length;
-  const lostDeals = deals.filter(
-    (deal: Deal) => deal.status === "CANCELLED",
-  ).length;
+  const { data: someDeals, isFetching: isFetchingSomeDeals } = useContactDeals(
+    contact.id,
+    5,
+  );
+  const { data: allOpportunities, isFetching: isFetchingAllOpportunities } =
+    useContactOpportunities(contact.id);
+  const { data: someOpportunities, isFetching: isFetchingSomeOpportunities } =
+    useContactOpportunities(contact.id, 5);
+  const { data: activities, isFetching: isFetchingActivities } =
+    useContactActivities(contact.id);
+  const { data: notes, isFetching: isFetchingNotes } = useContactNotes(
+    contact.id,
+  );
+  const { data: tasks, isFetching: isFetchingTasks } = useContactTasks(
+    contact.id,
+  );
+
+  const totalValue =
+    allDeals?.reduce((sum: number, deal: Deal) => sum + deal.amount, 0) || 0;
+  const wonDeals =
+    allDeals?.filter((deal: Deal) => deal.status === "COMPLETED").length || 0;
+  const lostDeals =
+    allDeals?.filter((deal: Deal) => deal.status === "CANCELLED").length || 0;
 
   return (
     <div className="space-y-6">
@@ -57,15 +81,17 @@ export function ContactSidebar({
             <div className="space-y-1">
               <p className="text-sm text-muted-foreground">Total Value</p>
               <p className="text-2xl font-bold">
-                ${totalValue.toLocaleString()}
+                KES {totalValue.toLocaleString()}
               </p>
             </div>
             <div className="space-y-1">
               <p className="text-sm text-muted-foreground">Win Rate</p>
               <p className="text-2xl font-bold">
-                {deals.length > 0
-                  ? Math.round((wonDeals / deals.length) * 100)
-                  : 0}
+                {isFetchingAllDeals
+                  ? 0
+                  : allDeals && allDeals.length > 0
+                    ? Math.round((wonDeals / allDeals.length) * 100)
+                    : 0}
                 %
               </p>
             </div>
@@ -91,12 +117,14 @@ export function ContactSidebar({
             </div>
             <div>
               <p className="text-2xl font-bold">
-                {contact._count?.opportunities || 0}
+                {isFetchingAllOpportunities ? 0 : allOpportunities?.length || 0}
               </p>
               <p className="text-xs text-muted-foreground">Opps</p>
             </div>
             <div>
-              <p className="text-2xl font-bold">{contact._count?.deals || 0}</p>
+              <p className="text-2xl font-bold">
+                {isFetchingAllDeals ? 0 : allDeals?.length || 0}
+              </p>
               <p className="text-xs text-muted-foreground">Deals</p>
             </div>
           </div>
@@ -104,13 +132,20 @@ export function ContactSidebar({
       </Card>
 
       {/* Recent Opportunities */}
-      {opportunities.length > 0 && (
+      {isFetchingSomeOpportunities ? (
+        <div className="flex items-center justify-center flex-col gap-4 w-full h-10">
+          <Spinner className="w-15 h-15" />
+          <span className="text-sm text-muted-foreground">
+            Loading opportunities...
+          </span>
+        </div>
+      ) : (someOpportunities?.length ?? 0 > 0) ? (
         <Card>
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-lg">Opportunities</CardTitle>
               <Button variant="ghost" size="sm" asChild>
-                <Link href={`/${tenant}/contacts/${contact.id}/opportunities`}>
+                <Link href={`/dashboard/contacts/${contact.id}/opportunities`}>
                   View all
                   <ArrowRight className="ml-2 h-3 w-3" />
                 </Link>
@@ -118,7 +153,7 @@ export function ContactSidebar({
             </div>
           </CardHeader>
           <CardContent className="space-y-3">
-            {opportunities.slice(0, 3).map((opp) => (
+            {someOpportunities?.slice(0, 3).map((opp) => (
               <div key={opp.id} className="space-y-2">
                 <div className="flex items-center justify-between">
                   <p className="text-sm font-medium">{opp.name}</p>
@@ -135,16 +170,32 @@ export function ContactSidebar({
             ))}
           </CardContent>
         </Card>
+      ) : (
+        <div className="w-full h-20 flex items-center justify-center flex-col gap-4">
+          <p className="text-sm text-muted-foreground">
+            No opportunities found
+          </p>
+          <Button variant="outline" size="sm">
+            Create Opportunity
+          </Button>
+        </div>
       )}
 
       {/* Recent Deals */}
-      {deals.length > 0 && (
+      {isFetchingSomeDeals ? (
+        <div className="flex items-center justify-center flex-col gap-4 w-full h-10">
+          <Spinner className="w-15 h-15" />
+          <span className="text-sm text-muted-foreground">
+            Loading deals...
+          </span>
+        </div>
+      ) : (someDeals?.length ?? 0 > 0) ? (
         <Card>
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-lg">Deals</CardTitle>
               <Button variant="ghost" size="sm" asChild>
-                <Link href={`/${tenant}/contacts/${contact.id}/deals`}>
+                <Link href={`/dashboard/contacts/${contact.id}/deals`}>
                   View all
                   <ArrowRight className="ml-2 h-3 w-3" />
                 </Link>
@@ -152,7 +203,7 @@ export function ContactSidebar({
             </div>
           </CardHeader>
           <CardContent className="space-y-3">
-            {deals.slice(0, 3).map((deal) => (
+            {someDeals?.slice(0, 3).map((deal) => (
               <div key={deal.id} className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium">{deal.name}</p>
@@ -175,6 +226,13 @@ export function ContactSidebar({
             ))}
           </CardContent>
         </Card>
+      ) : (
+        <div className="w-full h-20 flex items-center justify-center flex-col gap-4">
+          <p className="text-sm text-muted-foreground">No deals found</p>
+          <Button variant="outline" size="sm">
+            Create Deal
+          </Button>
+        </div>
       )}
 
       {/* Activity Summary */}
@@ -195,20 +253,21 @@ export function ContactSidebar({
             <div className="flex items-center justify-between">
               <span className="text-sm">Total Activities</span>
               <span className="text-sm font-medium">
-                {contact._count?.activities || 0}
+                {isFetchingActivities ? 0 : activities?.length || 0}
               </span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm">Open Tasks</span>
               <span className="text-sm font-medium">
-                {contact.tasks?.filter((t) => t.status !== "COMPLETED")
-                  .length || 0}
+                {isFetchingTasks
+                  ? 0
+                  : tasks?.filter((t) => t.status !== "COMPLETED").length || 0}
               </span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm">Notes</span>
               <span className="text-sm font-medium">
-                {contact._count?.notesList || 0}
+                {isFetchingNotes ? 0 : notes?.length || 0}
               </span>
             </div>
           </div>
