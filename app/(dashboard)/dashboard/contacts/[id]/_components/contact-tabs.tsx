@@ -34,25 +34,20 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
 // import { authClient } from "@/lib/auth-client";
-import { ContactNote, ContactTask } from "@/types/contact";
+import { ContactTask } from "@/types/contact";
 import { Contact } from "@/generated/prisma/client";
 import LogContactActivity from "./log-contact-activity";
-import { useContactActivities } from "@/hooks/use-contact";
+import { useContactActivities, useContactNotes } from "@/hooks/use-contact";
 import { Spinner } from "@/components/ui/spinner";
+import AddNoteForm from "./add-note-form";
 
 interface ContactTabsProps {
   contact: Contact;
-  initialNotes: ContactNote[];
   initialTasks: ContactTask[];
 }
 
-export function ContactTabs({
-  contact,
-  initialNotes,
-  initialTasks,
-}: ContactTabsProps) {
+export function ContactTabs({ contact, initialTasks }: ContactTabsProps) {
   const [activeTab, setActiveTab] = useState("activity");
-  const [newNote, setNewNote] = useState("");
   const [newEmail, setNewEmail] = useState({ subject: "", body: "" });
   const [newTask, setNewTask] = useState({ title: "", dueDate: "" });
 
@@ -61,6 +56,10 @@ export function ContactTabs({
 
   const { data: initialActivities, isFetching: loadingActivities } =
     useContactActivities(contact.id, 10);
+  const { data: initialNotes, isFetching: loadingNotes } = useContactNotes(
+    contact.id,
+    10,
+  );
 
   return (
     <Card>
@@ -104,7 +103,14 @@ export function ContactTabs({
             </div>
 
             <ScrollArea className="h-100 pr-4">
-              {initialActivities?.length === 0 ? (
+              {loadingActivities ? (
+                <div className="flex justify-center items-center flex-col gap-4 h-40">
+                  <Spinner className="w-15 h-15" />
+                  <span className="text-muted-foreground animate-pulse">
+                    Loading activities...
+                  </span>
+                </div>
+              ) : initialActivities?.length === 0 ? (
                 <div className="text-center py-12 text-muted-foreground">
                   <ActivityIcon className="h-12 w-12 mx-auto mb-4 opacity-20" />
                   <p>No activities yet</p>
@@ -113,13 +119,6 @@ export function ContactTabs({
                     contactId={contact.id}
                     contactName={`${contact.firstName} ${contact.lastName}`}
                   />
-                </div>
-              ) : loadingActivities ? (
-                <div className="flex justify-center items-center flex-col gap-4 h-40">
-                  <Spinner className="w-15 h-15" />
-                  <span className="text-muted-foreground animate-pulse">
-                    Loading activities...
-                  </span>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -198,42 +197,25 @@ export function ContactTabs({
           <TabsContent value="notes" className="p-6 space-y-4">
             <div className="space-y-4">
               {/* Add Note Form */}
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base">Add a Note</CardTitle>
-                  <CardDescription>
-                    Write a note about this contact
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Textarea
-                    placeholder="Write your note here..."
-                    value={newNote}
-                    onChange={(e) => setNewNote(e.target.value)}
-                    className="min-h-25"
-                  />
-                </CardContent>
-                <CardFooter className="flex justify-end gap-2">
-                  <Button variant="outline" size="sm">
-                    Cancel
-                  </Button>
-                  <Button size="sm" disabled={!newNote.trim()}>
-                    <FileText className="mr-2 h-4 w-4" />
-                    Save Note
-                  </Button>
-                </CardFooter>
-              </Card>
+              <AddNoteForm contactId={contact.id} />
 
               {/* Notes List */}
               <ScrollArea className="h-75 pr-4">
-                {initialNotes.length === 0 ? (
+                {loadingNotes ? (
+                  <div className="flex justify-center items-center flex-col gap-4 h-40">
+                    <Spinner className="w-15 h-15" />
+                    <span className="text-muted-foreground animate-pulse">
+                      Loading notes...
+                    </span>
+                  </div>
+                ) : initialNotes?.length === 0 ? (
                   <div className="text-center py-12 text-muted-foreground">
                     <FileText className="h-12 w-12 mx-auto mb-4 opacity-20" />
                     <p>No notes yet</p>
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {initialNotes.map((note) => (
+                    {initialNotes?.map((note) => (
                       <Card key={note.id}>
                         <CardContent className="p-4">
                           <p className="text-sm whitespace-pre-wrap">

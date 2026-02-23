@@ -17,7 +17,7 @@ import { Contact } from "@/generated/prisma/client";
 import { ContactInfo } from "./_components/contact-info";
 import { ContactTabs } from "./_components/contact-tabs";
 import { ContactSidebar } from "./_components/contact-sidebar";
-import { ContactNote, ContactTask, ContactType } from "@/types/contact";
+import { ContactTask, ContactType } from "@/types/contact";
 
 const ContactPage = () => {
   const params = useParams();
@@ -61,7 +61,6 @@ const ContactPage = () => {
               {/* Tabs for Activities, Notes, Emails, Tasks */}
               <ContactTabs
                 contact={contact as Contact}
-                initialNotes={contact?.notesList as ContactNote[]}
                 initialTasks={contact?.tasks as ContactTask[]}
               />
             </div>

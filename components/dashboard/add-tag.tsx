@@ -64,7 +64,6 @@ const AddTag = () => {
           },
         },
       );
-      console.log(data);
     } catch (error) {
       toast.error(error as string);
     }
