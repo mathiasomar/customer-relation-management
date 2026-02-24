@@ -5,12 +5,31 @@ import InviteMember from "@/components/dashboard/invite-member";
 import { useTenant } from "@/hooks/use-tenant";
 // import ViewDataTable from "./view-data-table";
 import ViewMembers from "./view-members";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 
 const MembersPage = () => {
   const { data, isFetching } = useTenant();
   return (
     <div className="w-full space-y-6">
       <div className="w-full flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+        <Breadcrumb className="mb-8">
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink href="/dashboard">Dashboard</BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>members</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
         {/* Buttons */}
         <div className="flex items-center-safe gap-2">
           {data?.userRole === "ADMIN" || data?.userRole === "MANAGER" ? (
