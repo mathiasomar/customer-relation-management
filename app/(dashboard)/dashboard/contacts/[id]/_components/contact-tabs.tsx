@@ -34,22 +34,24 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
 // import { authClient } from "@/lib/auth-client";
-import { ContactTask } from "@/types/contact";
 import { Contact } from "@/generated/prisma/client";
 import LogContactActivity from "./log-contact-activity";
-import { useContactActivities, useContactNotes } from "@/hooks/use-contact";
+import {
+  useContactActivities,
+  useContactNotes,
+  useContactTasks,
+} from "@/hooks/use-contact";
 import { Spinner } from "@/components/ui/spinner";
 import AddNoteForm from "./add-note-form";
+import AddTaskForm from "./add-task-form";
 
 interface ContactTabsProps {
   contact: Contact;
-  initialTasks: ContactTask[];
 }
 
-export function ContactTabs({ contact, initialTasks }: ContactTabsProps) {
+export function ContactTabs({ contact }: ContactTabsProps) {
   const [activeTab, setActiveTab] = useState("activity");
   const [newEmail, setNewEmail] = useState({ subject: "", body: "" });
-  const [newTask, setNewTask] = useState({ title: "", dueDate: "" });
 
   // const { data: session, isPending } = authClient.useSession();
   // const tenant = isPending ? null : session?.session.tenantId;
@@ -57,6 +59,10 @@ export function ContactTabs({ contact, initialTasks }: ContactTabsProps) {
   const { data: initialActivities, isFetching: loadingActivities } =
     useContactActivities(contact.id, 10);
   const { data: initialNotes, isFetching: loadingNotes } = useContactNotes(
+    contact.id,
+    10,
+  );
+  const { data: initialTasks, isFetching: loadingTasks } = useContactTasks(
     contact.id,
     10,
   );
@@ -313,51 +319,25 @@ export function ContactTabs({ contact, initialTasks }: ContactTabsProps) {
           <TabsContent value="tasks" className="p-6 space-y-4">
             <div className="space-y-4">
               {/* Add Task Form */}
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base">Create Task</CardTitle>
-                  <CardDescription>
-                    Create a new task for this contact
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <Input
-                    placeholder="Task title"
-                    value={newTask.title}
-                    onChange={(e) =>
-                      setNewTask({ ...newTask, title: e.target.value })
-                    }
-                  />
-                  <Input
-                    type="date"
-                    placeholder="Due date"
-                    value={newTask.dueDate}
-                    onChange={(e) =>
-                      setNewTask({ ...newTask, dueDate: e.target.value })
-                    }
-                  />
-                </CardContent>
-                <CardFooter className="flex justify-end gap-2">
-                  <Button variant="outline" size="sm">
-                    Cancel
-                  </Button>
-                  <Button size="sm" disabled={!newTask.title}>
-                    <Calendar className="mr-2 h-4 w-4" />
-                    Create Task
-                  </Button>
-                </CardFooter>
-              </Card>
+              <AddTaskForm contactId={contact.id} />
 
               {/* Tasks List */}
               <ScrollArea className="h-62.5 pr-4">
-                {initialTasks.length === 0 ? (
+                {loadingTasks ? (
+                  <div className="flex justify-center items-center flex-col gap-4 h-40">
+                    <Spinner className="w-15 h-15" />
+                    <span className="text-muted-foreground animate-pulse">
+                      Loading notes...
+                    </span>
+                  </div>
+                ) : initialTasks?.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
                     <Calendar className="h-12 w-12 mx-auto mb-4 opacity-20" />
                     <p>No tasks yet</p>
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    {initialTasks.map((task) => (
+                    {initialTasks?.map((task) => (
                       <div
                         key={task.id}
                         className="flex items-center justify-between p-3 rounded-lg border"
