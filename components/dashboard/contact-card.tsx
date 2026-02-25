@@ -93,7 +93,7 @@ const ContactCard = ({ contactId }: { contactId: string }) => {
         </Card>
       ) : (
         <Link href={`/dashboard/contacts/${contactId}`}>
-          <Card className="group relative overflow-hidden transition-all hover:shadow-lg hover:border-primary/50 cursor-pointer h-full flex flex-col">
+          <Card className="group relative overflow-hidden transition-all hover:shadow-lg cursor-pointer h-full flex flex-col">
             {/* Status Indicator */}
             <div
               className={`absolute top-0 left-0 w-1 h-full ${contact?.isActive ? "bg-green-500" : "bg-gray-300"}`}

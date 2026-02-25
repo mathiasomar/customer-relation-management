@@ -46,6 +46,7 @@ export function ContactsPagination({
   };
 
   const handlePageChange = (page: number) => {
+    if (page < 1 || page > totalPages) return;
     if (onPageChange) {
       onPageChange(page);
     } else {
@@ -207,7 +208,7 @@ export function ContactsPagination({
           size="icon"
           className="h-8 w-8"
           onClick={() => handlePageChange(currentPage + 1)}
-          disabled={currentPage === totalPages}
+          disabled={currentPage >= totalPages}
         >
           <ChevronRight className="h-4 w-4" />
         </Button>
@@ -218,7 +219,7 @@ export function ContactsPagination({
           size="icon"
           className="h-8 w-8"
           onClick={() => handlePageChange(totalPages)}
-          disabled={currentPage === totalPages}
+          disabled={currentPage >= totalPages}
         >
           <ChevronsRight className="h-4 w-4" />
         </Button>
