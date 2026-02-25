@@ -17,7 +17,7 @@ import { Separator } from "@/components/ui/separator";
 import { format } from "date-fns";
 // import { authClient } from "@/lib/auth-client";
 import { ContactType } from "@/types/contact";
-import { Deal } from "@/generated/prisma/client";
+import { Deal } from "@/generated/prisma/browser";
 import {
   useContactActivities,
   useContactDeals,

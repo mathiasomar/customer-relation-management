@@ -36,7 +36,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { Contact } from "@/generated/prisma/client";
+import { Contact } from "@/generated/prisma/browser";
 import { authClient } from "@/lib/auth-client";
 import { useDeleteContact } from "@/hooks/use-contact";
 

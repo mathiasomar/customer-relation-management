@@ -8,7 +8,7 @@ import {
   getTenantSubscription,
   updateSubscription,
 } from "@/actions/subscription.action";
-import { Prisma } from "@/generated/prisma/client";
+import { Prisma } from "@/generated/prisma/browser";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export const useSubscriptions = () => {

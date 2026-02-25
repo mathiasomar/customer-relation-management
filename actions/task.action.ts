@@ -1,5 +1,6 @@
 "use server";
 
+import { TaskStatus } from "@/generated/prisma/enums";
 import {
   getCurrentUser,
   verifyTenantPermission,
@@ -40,6 +41,100 @@ export const createContactTask = async (
     return {
       success: false,
       error: err instanceof Error ? err.message : "Failed to create task",
+    };
+  }
+};
+
+export const updateTaskStatus = async (taskId: string, status: string) => {
+  try {
+    const session = await getCurrentUser();
+
+    if (!session) {
+      return {
+        success: false,
+        error: "Unauthorized",
+      };
+    }
+
+    const updateTask = await prisma.task.update({
+      where: { id: taskId },
+      data: { status: status as TaskStatus },
+    });
+
+    return {
+      success: true,
+      data: updateTask,
+    };
+  } catch (err) {
+    console.error("Error updating task status:", err);
+    return {
+      success: false,
+      error:
+        err instanceof Error ? err.message : "Failed to update task status",
+    };
+  }
+};
+
+export const deleteTask = async (taskId: string) => {
+  try {
+    const session = await getCurrentUser();
+
+    if (!session) {
+      return {
+        success: false,
+        error: "Unauthorized",
+      };
+    }
+
+    const deleteTask = await prisma.task.update({
+      where: { id: taskId },
+      data: { deletedAt: new Date() },
+    });
+
+    return {
+      success: true,
+      data: deleteTask,
+    };
+  } catch (err) {
+    console.error("Error deleting task:", err);
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : "Failed to delete task",
+    };
+  }
+};
+
+export const updateTask = async (
+  taskId: string,
+  data: { title?: string; dueDate?: Date },
+) => {
+  try {
+    const session = await getCurrentUser();
+
+    if (!session) {
+      return {
+        success: false,
+        error: "Unauthorized",
+      };
+    }
+
+    const updateTask = await prisma.task.update({
+      where: { id: taskId },
+      data: {
+        title: data.title,
+        dueDate: data.dueDate,
+      },
+    });
+
+    return {
+      success: true,
+      data: updateTask,
+    };
+  } catch (err) {
+    console.error("Error updating task:", err);
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : "Failed to update task",
     };
   }
 };

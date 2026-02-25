@@ -13,7 +13,7 @@ import { Separator } from "@/components/ui/separator";
 import { useContact } from "@/hooks/use-contact";
 import { useParams } from "next/navigation";
 import { ContactHeader } from "./_components/contact-header";
-import { Contact } from "@/generated/prisma/client";
+import { Contact } from "@/generated/prisma/browser";
 import { ContactInfo } from "./_components/contact-info";
 import { ContactTabs } from "./_components/contact-tabs";
 import { ContactSidebar } from "./_components/contact-sidebar";

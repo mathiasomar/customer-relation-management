@@ -135,7 +135,7 @@ const AddTaskForm = ({ contactId }: { contactId: string }) => {
           ) : (
             <Calendar className="mr-2 h-4 w-4" />
           )}
-          {addTaskMutation.isPending ? "Adding..." : "Add Note"}
+          {addTaskMutation.isPending ? "Adding..." : "Add Task"}
         </Button>
       </CardFooter>
     </Card>

@@ -17,7 +17,7 @@ import {
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DataTableColumnHeader } from "@/components/dashboard/data-table-column-header";
-import { User } from "@/generated/prisma/client";
+import { User } from "@/generated/prisma/browser";
 
 // export type User = {
 //   id: string;
