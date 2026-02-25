@@ -151,22 +151,8 @@ export function ContactFiltersSection({
   const { data: tagsData, isLoading: tagsLoading } = useTags();
   const exportContacts = useExportContacts();
 
-  // Update URL when search changes (immediate)
+  // Update URL when filters change
   useEffect(() => {
-    const params = new URLSearchParams(searchParams.toString());
-
-    if (debouncedSearch) {
-      params.set("search", debouncedSearch);
-    } else {
-      params.delete("search");
-    }
-
-    params.set("page", "1"); // Reset to first page on search change
-
-    router.push(`${pathname}?${params.toString()}`);
-  }, [debouncedSearch, pathname, router, searchParams]);
-
-  const applyFilters = () => {
     const params = new URLSearchParams(searchParams.toString());
 
     // Update search params
@@ -234,7 +220,20 @@ export function ContactFiltersSection({
         sortOrder: sortOrder,
       });
     }
-  };
+  }, [
+    debouncedSearch,
+    selectedAssignee,
+    selectedTags,
+    selectedCompany,
+    showInactive,
+    dateRange,
+    sortBy,
+    sortOrder,
+    pathname,
+    router,
+    searchParams,
+    onFilterChange,
+  ]);
 
   const clearAllFilters = () => {
     setSearchTerm("");
@@ -715,9 +714,7 @@ export function ContactFiltersSection({
                   Clear All Filters
                 </Button>
                 <SheetClose asChild>
-                  <Button className="w-full" onClick={applyFilters}>
-                    Apply Filters
-                  </Button>
+                  <Button className="w-full">Apply Filters</Button>
                 </SheetClose>
               </SheetFooter>
             </SheetContent>
