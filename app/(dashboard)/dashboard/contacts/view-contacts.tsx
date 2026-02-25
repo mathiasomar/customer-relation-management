@@ -4,11 +4,9 @@ import ContactCard from "@/components/dashboard/contact-card";
 import { ContactFiltersSection } from "@/components/dashboard/contact-filters";
 import { ContactsPagination } from "@/components/dashboard/contact-pagination";
 import CardListSkeleton from "@/components/dashboard/loaders/card-list-skeleton";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useContacts } from "@/hooks/use-contact";
 import { ContactFilters } from "@/types/contact";
-import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
 const ViewContacts = () => {
@@ -41,26 +39,25 @@ const ViewContacts = () => {
   };
   const { data: contacts, isFetching } = useContacts(filters as ContactFilters);
   return (
-    <div className="w-full">
+    <div className="w-full space-y-4">
+      <ContactFiltersSection
+        initialFilters={filters as ContactFilters}
+        totalCount={contacts?.meta?.total || 0}
+      />
       {isFetching ? (
         <CardListSkeleton columns={3} items={3} />
       ) : contacts?.data?.length === 0 || !contacts?.data ? (
         <div className="w-full h-50">
           <Card className="h-full shadow-none flex items-center justify-center border-dashed border-2">
             <CardContent className="flex flex-col items-center gap-2">
-              <h1 className="text-sm text-muted-foreground">No Contacts</h1>
-              <Button asChild>
-                <Link href="/dashboard/contacts/create">Add Contact</Link>
-              </Button>
+              <h1 className="text-sm text-muted-foreground">
+                No Contacts Found
+              </h1>
             </CardContent>
           </Card>
         </div>
       ) : (
         <div className="space-y-4">
-          <ContactFiltersSection
-            initialFilters={filters as ContactFilters}
-            totalCount={contacts.meta.total}
-          />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6">
             {contacts.data.map((contact) => (
               <ContactCard key={contact.id} contactId={contact.id} />
