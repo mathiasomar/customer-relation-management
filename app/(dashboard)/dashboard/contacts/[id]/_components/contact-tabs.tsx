@@ -89,6 +89,13 @@ interface ContactTabsProps {
   contact: Contact;
 }
 
+interface TaskTypes extends Task {
+  assignee?: {
+    name: string;
+    image?: string | null;
+  } | null;
+}
+
 const TaskDetailsDialog = ({
   task,
   open,
@@ -96,7 +103,7 @@ const TaskDetailsDialog = ({
   onUpdate,
   onDelete,
 }: {
-  task: any;
+  task: TaskTypes;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onUpdate: (id: string, data: Prisma.TaskUpdateInput) => void;
@@ -858,7 +865,7 @@ export function ContactTabs({ contact }: ContactTabsProps) {
       </Card>
       {/* Task Details Dialog */}
       <TaskDetailsDialog
-        task={selectedTask}
+        task={selectedTask as TaskTypes}
         open={taskDialogOpen}
         onOpenChange={setTaskDialogOpen}
         onUpdate={() =>
