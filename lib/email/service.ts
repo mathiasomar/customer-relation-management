@@ -17,11 +17,23 @@ export interface EmailOptions {
   }>;
 }
 
+export interface EmailDetails {
+  messageId: string;
+  envelope?: {
+    from?: string;
+    to?: string[];
+  };
+  accepted?: string[];
+  rejected?: string[];
+  pending?: string[];
+  response?: string;
+}
+
 export interface EmailResult {
   success: boolean;
   messageId?: string;
   error?: string;
-  details?: any;
+  details?: EmailDetails;
 }
 
 class EmailService {
@@ -87,7 +99,14 @@ class EmailService {
       return {
         success: true,
         messageId: info.messageId,
-        details: info,
+        details: {
+          messageId: info.messageId,
+          envelope: info.envelope,
+          accepted: info.accepted,
+          rejected: info.rejected,
+          pending: info.pending,
+          response: info.response,
+        },
       };
     } catch (error) {
       console.error("Error sending email:", error);

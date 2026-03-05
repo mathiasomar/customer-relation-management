@@ -11,6 +11,13 @@ import { emailService } from "@/lib/email/service";
 import { ActivityType, ActivityStatus } from "@/generated/prisma/enums";
 import { emailTemplates } from "@/lib/email/template";
 
+// Type for custom template data
+type CustomTemplateData = {
+  name?: string;
+  company?: string;
+  reason?: string;
+};
+
 // Schema for sending email
 const sendEmailSchema = z.object({
   subject: z.string().min(1, "Subject is required"),
@@ -163,7 +170,7 @@ export async function sendEmailToContact(
 export async function sendTemplateEmail(
   contactId: string,
   templateName: "welcome" | "followUp" | "thankYou",
-  customData?: Record<string, any>,
+  customData?: CustomTemplateData,
 ) {
   try {
     const session = await getCurrentUser();

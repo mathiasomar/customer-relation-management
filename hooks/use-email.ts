@@ -6,6 +6,13 @@ import {
 } from "@/actions/email-action";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+// Type for custom template data
+type CustomTemplateData = {
+  name?: string;
+  company?: string;
+  reason?: string;
+};
+
 // Hook for sending email to contact
 export const useSendEmail = (contactId: string) => {
   const queryClient = useQueryClient();
@@ -31,7 +38,7 @@ export const useSendTemplateEmail = (contactId: string) => {
       customData,
     }: {
       templateName: "welcome" | "followUp" | "thankYou";
-      customData?: Record<string, any>;
+      customData?: CustomTemplateData;
     }) => sendTemplateEmail(contactId, templateName, customData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["email-history", contactId] });
