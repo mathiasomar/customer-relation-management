@@ -5,9 +5,6 @@ import {
   Mail,
   FileText,
   Calendar,
-  Send,
-  Paperclip,
-  Smile,
   MoreHorizontal,
   Phone,
   Video,
@@ -26,7 +23,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -84,6 +80,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import SendEmailForm from "./email-form";
+import { EmailHistory } from "./email-history";
 
 interface ContactTabsProps {
   contact: Contact;
@@ -352,7 +350,6 @@ const TaskDetailsDialog = ({
 
 export function ContactTabs({ contact }: ContactTabsProps) {
   const [activeTab, setActiveTab] = useState("activity");
-  const [newEmail, setNewEmail] = useState({ subject: "", body: "" });
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [taskDialogOpen, setTaskDialogOpen] = useState(false);
 
@@ -646,62 +643,10 @@ export function ContactTabs({ contact }: ContactTabsProps) {
             <TabsContent value="email" className="p-6 space-y-4">
               <div className="space-y-4">
                 {/* Compose Email */}
-                <Card>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-base">Compose Email</CardTitle>
-                    <CardDescription>
-                      Send an email to this contact
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <Input
-                      placeholder="Subject"
-                      value={newEmail.subject}
-                      onChange={(e) =>
-                        setNewEmail({ ...newEmail, subject: e.target.value })
-                      }
-                    />
-                    <Textarea
-                      placeholder="Write your message..."
-                      value={newEmail.body}
-                      onChange={(e) =>
-                        setNewEmail({ ...newEmail, body: e.target.value })
-                      }
-                      className="min-h-37.5"
-                    />
-                  </CardContent>
-                  <CardFooter className="flex justify-between">
-                    <div className="flex gap-2">
-                      <Button variant="ghost" size="icon">
-                        <Paperclip className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon">
-                        <Smile className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    <Button disabled={!newEmail.subject || !newEmail.body}>
-                      <Send className="mr-2 h-4 w-4" />
-                      Send Email
-                    </Button>
-                  </CardFooter>
-                </Card>
+                <SendEmailForm contact={contact} />
 
-                {/* Email Templates */}
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <span>Use a template:</span>
-                  <Button variant="link" className="h-auto p-0 text-xs">
-                    Follow-up
-                  </Button>
-                  <Button variant="link" className="h-auto p-0 text-xs">
-                    Introduction
-                  </Button>
-                  <Button variant="link" className="h-auto p-0 text-xs">
-                    Thank you
-                  </Button>
-                </div>
+                {/* Email List */}
+                <EmailHistory contactId={contact.id} />
               </div>
             </TabsContent>
 
