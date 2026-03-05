@@ -1,62 +1,51 @@
 "use client";
 
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupButton,
-  InputGroupInput,
-} from "../ui/input-group";
-import { useState } from "react";
+import { SearchIcon, X } from "lucide-react";
 import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { useEffect, useState } from "react";
+import { usePathname, useSearchParams, useRouter } from "next/navigation";
+import { useDebounce } from "@/hooks/use-debounce";
 
 const Search = () => {
-  const [searchValue, setSearchValue] = useState<string>("");
   const router = useRouter();
-  const searchParams = useSearchParams();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
 
-  const handleSearch = (value: string | null) => {
-    const params = new URLSearchParams(searchParams);
-    params.set("search", value || "");
-    router.push(`${pathname}?${params.toString()}`, { scroll: false });
-  };
+  const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearch = useDebounce(searchTerm, 500);
 
-  const handleClearSearch = () => {
-    setSearchValue("");
+  useEffect(() => {
     const params = new URLSearchParams(searchParams.toString());
-    params.delete("search");
-    router.push(`${pathname}?${params.toString()}`, { scroll: false });
-    router.refresh();
-  };
+
+    // Update search params
+    if (debouncedSearch) {
+      params.set("search", debouncedSearch);
+    } else {
+      params.delete("search");
+    }
+
+    router.push(`${pathname}?${params.toString()}`);
+  }, [debouncedSearch, searchParams, router, pathname]);
   return (
-    <div className="flex items-center gap-4">
-      <div className="max-w-sm">
-        <InputGroup>
-          <InputGroupInput
-            className="text-xs md:text-sm"
-            placeholder="Type to search..."
-            value={searchValue}
-            onChange={(e) => setSearchValue(e.target.value)}
-          />
-          <InputGroupAddon align="inline-end">
-            <InputGroupButton
-              className="text-xs md:text-sm"
-              variant="secondary"
-              onClick={() => handleSearch(searchValue)}
-            >
-              Search
-            </InputGroupButton>
-          </InputGroupAddon>
-        </InputGroup>
-      </div>
-      <Button
-        className="text-xs md:text-sm"
-        variant={"outline"}
-        onClick={handleClearSearch}
-      >
-        All
-      </Button>
+    <div className="relative flex-1">
+      <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+      <Input
+        placeholder="Search..."
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        className="pl-9 pr-8"
+      />
+      {searchTerm && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="absolute right-1 top-1/2 transform -translate-y-1/2 h-6 w-6"
+          onClick={() => setSearchTerm("")}
+        >
+          <X className="h-4 w-4" />
+        </Button>
+      )}
     </div>
   );
 };

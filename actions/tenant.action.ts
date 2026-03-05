@@ -898,7 +898,7 @@ export const inviteMember = async (data: {
       where: { tenantId: tenantId ?? "" },
     });
 
-    if (countMambers >= limits["maxMembers"]) {
+    if (countMambers >= (limits?.["maxMembers"] ?? Infinity)) {
       return {
         success: false,
         error: "You have reached the maximum number of members",

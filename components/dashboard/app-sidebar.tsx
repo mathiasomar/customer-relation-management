@@ -14,6 +14,7 @@ import {
   Package,
   Podcast,
   Settings,
+  Tags,
   Target,
   User2,
   Users2,
@@ -90,6 +91,11 @@ const sidebarGroupItems = [
         title: "Opportunities",
         url: "/dashboard/opportunities",
         icon: Lightbulb,
+      },
+      {
+        title: "Tags",
+        url: "/dashboard/tags",
+        icon: Tags,
       },
       {
         title: "Product",

@@ -1,4 +1,4 @@
-import Search from "@/components/dashboard/search";
+// import Search from "@/components/dashboard/search";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -32,9 +32,7 @@ const OrganizationPage = () => {
       </div>
       {/* Stat Cards */}
       <CardsStat />
-      <div>
-        <Search />
-      </div>
+      <div>{/* <Search /> */}</div>
       {/* <ViewDataTable /> */}
       {/* Organization cards */}
       <ViewOrganizations />

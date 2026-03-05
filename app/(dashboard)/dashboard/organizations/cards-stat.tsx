@@ -40,7 +40,7 @@ const CardsStat = () => {
           <Card className="p-0 shadow-none rounded-md">
             <CardContent className="flex items-center justify-between p-4">
               <div className="space-y-4">
-                <p className="font-semibold text-sm">Active Tenants</p>
+                <p className="font-semibold text-sm">Active Organizations</p>
                 <h1 className="text-3xl font-bold">{stats?.activeTenants}</h1>
               </div>
               {/* Icon */}

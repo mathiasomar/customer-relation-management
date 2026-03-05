@@ -92,16 +92,18 @@ export const useCreateTenant = () => {
       if (!result.success) throw new Error(result.error);
       return result;
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       // Invalidate all tenant-related queries to refresh data
-      queryClient.invalidateQueries({ queryKey: ["tenant"] });
-      queryClient.invalidateQueries({ queryKey: ["tenants"] });
-      queryClient.invalidateQueries({ queryKey: ["all-tenants"] });
-      queryClient.invalidateQueries({ queryKey: ["admin-tenants"] });
-      queryClient.invalidateQueries({ queryKey: ["tenant-members"] });
-      queryClient.invalidateQueries({ queryKey: ["tenant-usage"] });
-      queryClient.invalidateQueries({ queryKey: ["session"] });
-      queryClient.invalidateQueries({ queryKey: ["user-tenant-count"] });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["tenant"] }),
+        queryClient.invalidateQueries({ queryKey: ["tenants"] }),
+        queryClient.invalidateQueries({ queryKey: ["all-tenants"] }),
+        queryClient.invalidateQueries({ queryKey: ["admin-tenants"] }),
+        queryClient.invalidateQueries({ queryKey: ["tenant-members"] }),
+        queryClient.invalidateQueries({ queryKey: ["tenant-usage"] }),
+        queryClient.invalidateQueries({ queryKey: ["session"] }),
+        queryClient.invalidateQueries({ queryKey: ["user-tenant-count"] }),
+      ]);
     },
     onError: (error) => {
       console.error("Failed to create tenant:", error);
@@ -118,12 +120,14 @@ export const useUploadImage = () => {
       if (!result.success) throw new Error(result.error);
       return result;
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       // Invalidate all tenant-related queries to refresh data
-      queryClient.invalidateQueries({ queryKey: ["tenant"] });
-      queryClient.invalidateQueries({ queryKey: ["tenants"] });
-      queryClient.invalidateQueries({ queryKey: ["all-tenants"] });
-      queryClient.invalidateQueries({ queryKey: ["session"] });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["tenant"] }),
+        queryClient.invalidateQueries({ queryKey: ["tenants"] }),
+        queryClient.invalidateQueries({ queryKey: ["all-tenants"] }),
+        queryClient.invalidateQueries({ queryKey: ["session"] }),
+      ]);
     },
     onError: (error) => {
       console.error("Failed to create tenant:", error);
@@ -151,14 +155,16 @@ export const useUpdateTenant = () => {
       if (!result.success) throw new Error(result.error);
       return result;
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       if (data.success) {
         // Invalidate tenant queries
-        queryClient.invalidateQueries({ queryKey: ["tenant"] });
-        queryClient.invalidateQueries({ queryKey: ["tenant-usage"] });
-        queryClient.invalidateQueries({ queryKey: ["all-tenants"] });
-        queryClient.invalidateQueries({ queryKey: ["admin-tenants"] });
-        queryClient.invalidateQueries({ queryKey: ["user-tenant-count"] });
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ["tenant"] }),
+          queryClient.invalidateQueries({ queryKey: ["tenant-usage"] }),
+          queryClient.invalidateQueries({ queryKey: ["all-tenants"] }),
+          queryClient.invalidateQueries({ queryKey: ["admin-tenants"] }),
+          queryClient.invalidateQueries({ queryKey: ["user-tenant-count"] }),
+        ]);
       }
     },
   });
@@ -177,15 +183,16 @@ export const useUpdateTenantSubscription = () => {
       if (!result.success) throw new Error(result.error);
       return result;
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       if (data.success) {
         // Invalidate tenant queries
-        queryClient.invalidateQueries({ queryKey: ["tenant"] });
-        queryClient.invalidateQueries({ queryKey: ["tenant-usage"] });
-        queryClient.invalidateQueries({ queryKey: ["all-tenants"] });
-        queryClient.invalidateQueries({ queryKey: ["admin-tenants"] });
-        queryClient.invalidateQueries({ queryKey: ["tenant-subscription"] });
-        queryClient.invalidateQueries({ queryKey: ["user-tenant-count"] });
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ["tenant"] }),
+          queryClient.invalidateQueries({ queryKey: ["tenant-usage"] }),
+          queryClient.invalidateQueries({ queryKey: ["all-tenants"] }),
+          queryClient.invalidateQueries({ queryKey: ["admin-tenants"] }),
+          queryClient.invalidateQueries({ queryKey: ["user-tenant-count"] }),
+        ]);
       }
     },
   });
@@ -201,12 +208,14 @@ export const useSelectTenantSubscription = () => {
       if (!result.success) throw new Error(result.error);
       return result;
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       if (data.success) {
-        queryClient.invalidateQueries({ queryKey: ["tenant"] });
-        queryClient.invalidateQueries({ queryKey: ["tenant-usage"] });
-        queryClient.invalidateQueries({ queryKey: ["subscriptions"] });
-        queryClient.invalidateQueries({ queryKey: ["tenant-subscription"] });
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ["tenant"] }),
+          queryClient.invalidateQueries({ queryKey: ["tenant-usage"] }),
+          queryClient.invalidateQueries({ queryKey: ["subscriptions"] }),
+          queryClient.invalidateQueries({ queryKey: ["tenant-subscription"] }),
+        ]);
       }
     },
   });
@@ -251,13 +260,15 @@ export const useInviteMember = () => {
       if (!result.success) throw new Error(result.error);
       return result;
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       if (data.success) {
-        queryClient.invalidateQueries({ queryKey: ["tenant-members"] });
-        queryClient.invalidateQueries({ queryKey: ["tenant-usage"] });
-        queryClient.invalidateQueries({ queryKey: ["session"] });
-        queryClient.invalidateQueries({ queryKey: ["tenant"] });
-        queryClient.invalidateQueries({ queryKey: ["user-tenant-count"] });
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ["tenant-members"] }),
+          queryClient.invalidateQueries({ queryKey: ["tenant-usage"] }),
+          queryClient.invalidateQueries({ queryKey: ["session"] }),
+          queryClient.invalidateQueries({ queryKey: ["tenant"] }),
+          queryClient.invalidateQueries({ queryKey: ["user-tenant-count"] }),
+        ]);
       }
     },
   });
@@ -294,10 +305,12 @@ export const useRemoveMember = () => {
       if (!result.success) throw new Error(result.error);
       return result;
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       if (data.success) {
-        queryClient.invalidateQueries({ queryKey: ["tenant-members"] });
-        queryClient.invalidateQueries({ queryKey: ["user-tenant-count"] });
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ["tenant-members"] }),
+          queryClient.invalidateQueries({ queryKey: ["user-tenant-count"] }),
+        ]);
       }
     },
   });
@@ -326,17 +339,21 @@ export const useSwitchTenant = () => {
       const result = await switchTenant(tenantId);
       return result;
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       if (data.success) {
         // Invalidate all tenant-related queries to refresh data
-        queryClient.invalidateQueries({ queryKey: ["tenant"] });
-        queryClient.invalidateQueries({ queryKey: ["tenants"] });
-        queryClient.invalidateQueries({ queryKey: ["all-tenants"] });
-        queryClient.invalidateQueries({ queryKey: ["tenant-members"] });
-        queryClient.invalidateQueries({ queryKey: ["tenant-usage"] });
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ["tenant"] }),
+          queryClient.invalidateQueries({ queryKey: ["tenants"] }),
+          queryClient.invalidateQueries({ queryKey: ["all-tenants"] }),
+          queryClient.invalidateQueries({ queryKey: ["tenant-members"] }),
+          queryClient.invalidateQueries({ queryKey: ["tenant-usage"] }),
+          queryClient.invalidateQueries({ queryKey: ["contact-stats"] }),
+          queryClient.invalidateQueries({ queryKey: ["contacts"] }),
 
-        // Clear session cache to ensure new tenant context is loaded
-        queryClient.invalidateQueries({ queryKey: ["session"] });
+          // Clear session cache to ensure new tenant context is loaded
+          queryClient.invalidateQueries({ queryKey: ["session"] }),
+        ]);
       }
     },
     onError: (error) => {
