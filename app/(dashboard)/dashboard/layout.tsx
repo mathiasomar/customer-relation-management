@@ -31,7 +31,7 @@ const layout = async ({ children }: { children: React.ReactNode }) => {
 
   return (
     <SidebarProvider defaultOpen={defaultOpen}>
-      <NextTopLoader height={3} color="#3b82f6" showSpinner={false} />
+      <NextTopLoader height={5} color="#ff0000" showSpinner={false} />
       <AppSidebar />
       <main className="w-full">
         <Navbar />
