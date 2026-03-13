@@ -7,7 +7,6 @@ import { auth } from "@/lib/auth";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import React from "react";
-import NextTopLoader from "nextjs-toploader";
 
 const layout = async ({ children }: { children: React.ReactNode }) => {
   const cookieStore = await cookies();
@@ -31,7 +30,6 @@ const layout = async ({ children }: { children: React.ReactNode }) => {
 
   return (
     <SidebarProvider defaultOpen={defaultOpen}>
-      <NextTopLoader height={5} color="#ff0000" showSpinner={false} />
       <AppSidebar />
       <main className="w-full">
         <Navbar />
