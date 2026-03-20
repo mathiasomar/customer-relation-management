@@ -38,7 +38,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <QueryProvider>
-            <NextTopLoader height={5} color="#ff0000" showSpinner={false} />
+            <NextTopLoader height={3} color="#ff0000" showSpinner={false} />
             {children}
           </QueryProvider>
           <Toaster richColors position="top-right" />

@@ -538,29 +538,51 @@ export const updateContact = async (
       }
     }
 
+    // Separate tags from the main contact data
+    const { tags, ...contactData } = validatedData;
+
     // Update contact with transaction
     const contact = await prisma.$transaction(async (tx) => {
-      // Update contact
-      const updatedContact = await tx.contact.update({
+      // Update contact WITHOUT the tags field
+      await tx.contact.update({
         where: { id: contactId },
         data: {
-          ...validatedData,
-          tags: validatedData.tags as Prisma.TagAssignmentUncheckedCreateNestedManyWithoutContactInput,
-          assigneeId: validatedData.assigneeId || null,
+          firstName: contactData.firstName,
+          lastName: contactData.lastName,
+          email: contactData.email,
+          phone: contactData.phone,
+          mobile: contactData.mobile,
+          jobTitle: contactData.jobTitle,
+          department: contactData.department,
+          company: contactData.company,
+          avatar: contactData.avatar,
+          timezone: contactData.timezone,
+          street: contactData.street,
+          city: contactData.city,
+          state: contactData.state,
+          postalCode: contactData.postalCode,
+          country: contactData.country,
+          linkedin: contactData.linkedin,
+          twitter: contactData.twitter,
+          facebook: contactData.facebook,
+          source: contactData.source,
+          notes: contactData.notes,
+          assigneeId: contactData.assigneeId || null,
+          isActive: contactData.isActive,
         },
       });
 
-      // Handle tags if provided
-      if (validatedData.tags) {
+      // Handle tags separately if provided
+      if (tags) {
         // Remove existing tags
         await tx.tagAssignment.deleteMany({
           where: { contactId },
         });
 
         // Add new tags
-        if (validatedData.tags.length > 0) {
+        if (tags.length > 0) {
           await tx.tagAssignment.createMany({
-            data: validatedData.tags.map((tagId) => ({
+            data: tags.map((tagId) => ({
               tagId,
               contactId,
               entityType: "contact",
@@ -585,7 +607,25 @@ export const updateContact = async (
         },
       });
 
-      return updatedContact;
+      // Return the updated contact with relations
+      return tx.contact.findUnique({
+        where: { id: contactId },
+        include: {
+          assignee: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              image: true,
+            },
+          },
+          tags: {
+            include: {
+              tag: true,
+            },
+          },
+        },
+      });
     });
 
     revalidatePath(`/dashboard/contacts`);
