@@ -37,16 +37,17 @@ import {
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { Contact } from "@/generated/prisma/browser";
-import { authClient } from "@/lib/auth-client";
+// import { authClient } from "@/lib/auth-client";
 import { useDeleteContact } from "@/hooks/use-contact";
+import Link from "next/link";
 
 interface ContactHeaderProps {
   contact: Contact;
 }
 
 export function ContactHeader({ contact }: ContactHeaderProps) {
-  const { data: session, isPending } = authClient.useSession();
-  const tenant = isPending ? "" : session?.session.tenantId;
+  // const { data: session, isPending } = authClient.useSession();
+  // const tenant = isPending ? "" : session?.session.tenantId;
   const router = useRouter();
   const deleteContact = useDeleteContact();
 
@@ -144,13 +145,11 @@ export function ContactHeader({ contact }: ContactHeaderProps) {
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() =>
-                router.push(`/${tenant}/contacts/${contact.id}/edit`)
-              }
-            >
-              <Edit className="mr-2 h-4 w-4" />
-              Edit Contact
+            <DropdownMenuItem asChild>
+              <Link href={`/dashboard/contacts/${contact.id}/edit`}>
+                <Edit className="mr-2 h-4 w-4" />
+                Edit Contact
+              </Link>
             </DropdownMenuItem>
             <DropdownMenuItem>
               <Calendar className="mr-2 h-4 w-4" />
