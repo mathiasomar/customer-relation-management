@@ -40,6 +40,7 @@ import { Contact } from "@/generated/prisma/browser";
 // import { authClient } from "@/lib/auth-client";
 import { useDeleteContact } from "@/hooks/use-contact";
 import Link from "next/link";
+import { Spinner } from "@/components/ui/spinner";
 
 interface ContactHeaderProps {
   contact: Contact;
@@ -61,9 +62,19 @@ export function ContactHeader({ contact }: ContactHeaderProps) {
 
   const handleDelete = async () => {
     try {
-      await deleteContact.mutateAsync(contact.id);
-      toast.success("Contact deleted successfully");
-      router.push(`/dashboard/contacts`);
+      deleteContact.mutateAsync(contact.id, {
+        onSuccess: () => {
+          toast.success("Contact deleted successfully!");
+          router.push(`/dashboard/contacts`);
+        },
+        onError: (error) => {
+          console.error("Contact delete error:", error);
+          toast.error("Failed to delete contact. Please try again.");
+          if (error instanceof Error) {
+            toast.error(error.message);
+          }
+        },
+      });
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Failed to delete contact",
@@ -165,9 +176,14 @@ export function ContactHeader({ contact }: ContactHeaderProps) {
                 <DropdownMenuItem
                   className="text-destructive focus:text-destructive"
                   onSelect={(e) => e.preventDefault()}
+                  disabled={deleteContact.isPending}
                 >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Delete Contact
+                  {deleteContact.isPending ? (
+                    <Spinner />
+                  ) : (
+                    <Trash2 className="mr-2 h-4 w-4" />
+                  )}
+                  {deleteContact.isPending ? "Deleting..." : "Delete Contact"}
                 </DropdownMenuItem>
               </AlertDialogTrigger>
               <AlertDialogContent>
