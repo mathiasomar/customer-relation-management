@@ -60,7 +60,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { useUpdateContact } from "@/hooks/use-contact";
+import { useDeleteContact, useUpdateContact } from "@/hooks/use-contact";
 import { toast } from "sonner";
 import { Spinner } from "../ui/spinner";
 import { Contact } from "@/generated/prisma/browser";
@@ -274,6 +274,7 @@ const EditContactForm = ({
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const updateContactMutation = useUpdateContact(contact.id);
+  const deleteContactMutation = useDeleteContact();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema) as Resolver<FormValues>,
@@ -447,7 +448,27 @@ const EditContactForm = ({
     return "CN";
   };
 
-  const handleDelete = () => {};
+  const handleDelete = async () => {
+    try {
+      deleteContactMutation.mutateAsync(contact.id, {
+        onSuccess: () => {
+          toast.success("Contact deleted successfully!");
+          router.push(`/dashboard/contacts`);
+        },
+        onError: (error) => {
+          console.error("Contact delete error:", error);
+          toast.error("Failed to delete contact. Please try again.");
+          if (error instanceof Error) {
+            toast.error(error.message);
+          }
+        },
+      });
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to delete contact",
+      );
+    }
+  };
 
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -483,9 +504,17 @@ const EditContactForm = ({
             onOpenChange={setDeleteDialogOpen}
           >
             <AlertDialogTrigger asChild>
-              <Button type="button" variant="destructive">
-                <Trash2 className="mr-2 h-4 w-4" />
-                Delete
+              <Button
+                type="button"
+                variant="destructive"
+                disabled={deleteContactMutation.isPending}
+              >
+                {deleteContactMutation.isPending ? (
+                  <Spinner />
+                ) : (
+                  <Trash2 className="mr-2 h-4 w-4" />
+                )}
+                {deleteContactMutation.isPending ? "Deleting..." : "Delete"}
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
